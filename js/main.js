@@ -5,12 +5,12 @@ import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
 
 // You all-in-one fake state manager
 const globalState = {
-    scaleFactor: 2.25, // for unknown reason either the scale of the object or the joints are not correct, hard-coded workaround only
+    scaleFactor: 22.5, // for unknown reason either the scale of the object or the joints are not correct, hard-coded workaround only
     lightIntensity: 1,
     cameraSettings: [45, 1, 0.1, 100],  // FoV, aspect, near, far,
 
     // joints
-    jointSephereConfig: [0.02, 10, 10, 0, Math.PI * 2, 0, Math.PI * 2],
+    jointSephereConfig: [0.2, 10, 10],
     renderedJoints: [],
     renderedObject: null,
     renderedWireframe: null,
@@ -21,7 +21,7 @@ const CONSTANT = {
     degree270: 4.71
 }
 
-const SAMPLE_JOINT_LOCATIONS = [
+let SAMPLE_JOINT_LOCATIONS = [
     [-0.3030651, -0.0789613, -0.2744476],
     [-0.30377717, -0.072937, -0.28056133],
     [0.30450148, -0.06736086, -0.27266805],
@@ -48,6 +48,12 @@ const SAMPLE_JOINT_LOCATIONS = [
     [-0.2944785, 0.49684488, -0.19092563]
 ]
 
+SAMPLE_JOINT_LOCATIONS = SAMPLE_JOINT_LOCATIONS.map((e) => {
+    let arr = [e[0] * 10, e[1] * 10, e[2] * 10];
+    return arr;
+    })
+
+
 function setupScene() {
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
@@ -65,8 +71,12 @@ function setupScene() {
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ canvas });
 
+const mouse = new THREE.Vector2()
+const raycaster = new THREE.Raycaster();
+
 const camera = new THREE.PerspectiveCamera(...globalState.cameraSettings);
 camera.position.set(1, 0.5, 3);
+camera.position.set(10, 5, 30);
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(0, 0, 0);
@@ -74,7 +84,42 @@ controls.target.set(0, 0, 0);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('gray');
-globalState.scene = scene;
+
+const clock = new THREE.Clock();
+let toggle = 0;
+
+document.addEventListener( 'click', onDocumentMouseClick, false );
+
+document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+function onDocumentMouseMove( event ) {
+    event.preventDefault();
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+}
+
+
+function onDocumentMouseClick (event) {
+    // event.preventDefault();
+    raycaster.setFromCamera( mouse, camera );
+    let intersects = raycaster.intersectObjects( globalState.renderedJoints );
+    if ( intersects.length > 0 ) {
+        let intersect = intersects[ 0 ];
+
+        if ( globalState.renderedJoints.includes(intersect.object) ){
+        
+            // don't do tenary...
+            if (intersect.object.selected == false) {
+                intersect.object.material.color.set('#000000');
+            } else {
+                intersect.object.material.color.set('#AAAA00');
+            }
+            intersect.object.selected = !intersect.object.selected;
+        }
+    }
+
+
+}
 
 {
     // const planeSize = 5;
@@ -131,6 +176,7 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 function render() {
+
     if (resizeRendererToDisplaySize(renderer)) {
         const canvas = renderer.domElement;
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -147,10 +193,11 @@ function renderJointCandidates() {
     for (let location in SAMPLE_JOINT_LOCATIONS) {
         const jointBall = new THREE.Mesh(
             new THREE.SphereGeometry(...globalState.jointSephereConfig),
-            new THREE.MeshNormalMaterial()
+            new THREE.MeshPhongMaterial( {color: "#AAAA00"})
         );
         // TODO: load from local fsys
         jointBall.position.set(...SAMPLE_JOINT_LOCATIONS[location]);
+        jointBall.selected = false;
         scene.add(jointBall);
 
         // for later control purpose, order not matters
@@ -167,7 +214,7 @@ function renderedWireframe(objectGeometry) {
     );
     wireframe.rotation.y = CONSTANT.degree270;
     scaleUpBy(wireframe, globalState.scaleFactor);
-    globalState.scene.add(wireframe);
+    scene.add(wireframe);
     globalState.renderedWireframe = wireframe;
 
     setToggleObjectById("toggleWireframe", globalState.renderedWireframe);
@@ -182,7 +229,7 @@ function renderObject(object) {
             mesh.rotation.y = CONSTANT.degree270;
             scaleUpBy(mesh, globalState.scaleFactor);
             globalState.renderedObject = mesh;
-            globalState.scene.add(mesh);
+            scene.add(mesh);
             renderedWireframe(child.geometry);
             setToggleObjectById("toggleShow", globalState.renderedObject);
         }
