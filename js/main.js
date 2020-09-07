@@ -1,9 +1,9 @@
 // Three.js - Load .OBJ ?
 // from https://threejsfundamentals.org/threejs/threejs-load-obj-no-materials.html
 
-import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/build/three.module.js';
-import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/controls/OrbitControls.js';
-import { OBJLoader2 } from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/loaders/OBJLoader2.js';
+import * as THREE from '../threejs/build/three.module.js';
+import { OrbitControls } from '../threejs/examples/jsm/controls/OrbitControls.js';
+import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
 
 
 const SAMPLE_JOINT_LOCATIONS = [
