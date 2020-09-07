@@ -1,10 +1,25 @@
-// Three.js - Load .OBJ ?
-// from https://threejsfundamentals.org/threejs/threejs-load-obj-no-materials.html
-
 import * as THREE from '../threejs/build/three.module.js';
 import { OrbitControls } from '../threejs/examples/jsm/controls/OrbitControls.js';
 import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
 
+
+// You all-in-one fake state manager
+const globalState = {
+    scaleFactor: 2.25, // for unknown reason either the scale of the object or the joints are not correct, hard-coded workaround only
+    lightIntensity: 1,
+    cameraSettings: [45, 1, 0.1, 100],  // FoV, aspect, near, far,
+
+    // joints
+    jointSephereConfig: [0.02, 10, 10, 0, Math.PI * 2, 0, Math.PI * 2],
+    renderedJoints: [],
+    renderedObject: null,
+    renderedWireframe: null,
+    scene: null
+}
+
+const CONSTANT = {
+    degree270: 4.71
+}
 
 const SAMPLE_JOINT_LOCATIONS = [
     [-0.3030651, -0.0789613, -0.2744476],
@@ -33,24 +48,33 @@ const SAMPLE_JOINT_LOCATIONS = [
     [-0.2944785, 0.49684488, -0.19092563]
 ]
 
+function setupScene() {
+    const skyColor = 0xB1E1FF;  // light blue
+    const groundColor = 0xB97A20;  // brownish orange
+    const lightHemi = new THREE.HemisphereLight(skyColor, groundColor, globalState.lightIntensity);
+    scene.add(lightHemi);
+
+    const color = 0xFFFFFF;
+    const directionalLight = new THREE.DirectionalLight(color, globalState.lightIntensity);
+    directionalLight.position.set(0, 10, 0);
+    directionalLight.target.position.set(-5, 0, 0);
+    scene.add(directionalLight);
+    // scene.add(directionalLight.target);
+}
 
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ canvas });
 
-// camera settings
-const fov = 45;
-const aspect = 1;  // the canvas default
-const near = 0.1;
-const far = 100;
-const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-camera.position.set(1, 0.5, 1);
+const camera = new THREE.PerspectiveCamera(...globalState.cameraSettings);
+camera.position.set(1, 0.5, 3);
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(0, 0, 0);
-controls.update();
+// controls.update();
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('gray');
+globalState.scene = scene;
 
 {
     // const planeSize = 5;
@@ -74,80 +98,27 @@ scene.background = new THREE.Color('gray');
     // scene.add(mesh);
 }
 
-{
-    const skyColor = 0xB1E1FF;  // light blue
-    const groundColor = 0xB97A20;  // brownish orange
-    const intensity = 1;
-    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
-    scene.add(light);
+const scaleUpBy = (obj, scaleFactor) => {
+    obj.scale.x = scaleFactor;
+    obj.scale.y = scaleFactor;
+    obj.scale.z = scaleFactor;
 }
 
-{
-    const color = 0xFFFFFF;
-    const intensity = 1;
-    const light = new THREE.DirectionalLight(color, intensity);
-    light.position.set(0, 10, 0);
-    light.target.position.set(-5, 0, 0);
-    scene.add(light);
-    scene.add(light.target);
-}
-
-{
-    const objLoader = new OBJLoader2();
-    objLoader.load('models/286/objs/bbadf45aa419015c7e4d369f13ed434e.obj', (root) => {
-
-        root.traverse(function (child) {
-
-            if (child instanceof THREE.Mesh) {
-
-
-                let geometry = child.geometry;
-                let material = child.material;
-                let mesh = new THREE.Mesh(geometry, material);
-                mesh.rotation.y = 4.71;
-                const scaleFactor = 2.25;
-                mesh.scale.x = scaleFactor;    // 60 / (2 * radius 10 ) -> 3
-                mesh.scale.y = scaleFactor;    //  4 / (2 * radius 10 ) -> 0.2
-                mesh.scale.z = scaleFactor;
-                scene.add(mesh);
-
-                const wireframeGeometry = new THREE.WireframeGeometry(geometry);
-                const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0x0A0Aff });
-                const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-                wireframe.rotation.y = 4.71;
-                wireframe.scale.x = scaleFactor;    // 60 / (2 * radius 10 ) -> 3
-                wireframe.scale.y = scaleFactor;    //  4 / (2 * radius 10 ) -> 0.2
-                wireframe.scale.z = scaleFactor;
-                scene.add(wireframe);
-
-                // controls on mesh and wireframe
-                document.getElementById("toggleShow").addEventListener("click", function () {
-                    mesh.visible = !mesh.visible;
-                });
-                document.getElementById("toggleWF").addEventListener("click", function () {
-                    wireframe.visible = !wireframe.visible;
-                });
-
-            }
-
-        });
-
+function setToggleObjectById(elementDOMId, object) {
+    document.getElementById(elementDOMId).addEventListener("click", () => {
+        object.visible = !object.visible;
     });
 }
 
-// joint candidates rendering
-{
-    for (let location in SAMPLE_JOINT_LOCATIONS) {
-        // console.log(SAMPLE_JOINT_LOCATIONS[location]);
-        var geometry = new THREE.SphereGeometry(0.02, 10, 10, 0, Math.PI * 2, 0, Math.PI * 2);
-        var material = new THREE.MeshNormalMaterial();
-        var cube = new THREE.Mesh(geometry, material);
-        cube.position.set(...SAMPLE_JOINT_LOCATIONS[location]);
-        
-        scene.add(cube);
-    }
+function setToggleObjectsById(elementDOMId, objects) {
+    document.getElementById(elementDOMId).addEventListener("click", () => {
+        for (let idx in objects) {
+            objects[idx].visible = !objects[idx].visible;
+        }
+    });
 }
 
+// adaptive resize canvas display and rendering
 function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
     const width = canvas.clientWidth;
@@ -160,7 +131,6 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 function render() {
-
     if (resizeRendererToDisplaySize(renderer)) {
         const canvas = renderer.domElement;
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -171,4 +141,67 @@ function render() {
     requestAnimationFrame(render);
 }
 
+
+// joint candidates rendering
+function renderJointCandidates() {
+    for (let location in SAMPLE_JOINT_LOCATIONS) {
+        const jointBall = new THREE.Mesh(
+            new THREE.SphereGeometry(...globalState.jointSephereConfig),
+            new THREE.MeshNormalMaterial()
+        );
+        // TODO: load from local fsys
+        jointBall.position.set(...SAMPLE_JOINT_LOCATIONS[location]);
+        scene.add(jointBall);
+
+        // for later control purpose, order not matters
+        globalState.renderedJoints.push(jointBall);
+    }
+
+    setToggleObjectsById("toggleJoints", globalState.renderedJoints);
+}
+
+function renderedWireframe(objectGeometry) {
+    const wireframe = new THREE.LineSegments(
+        new THREE.WireframeGeometry(objectGeometry), 
+        new THREE.LineBasicMaterial({ color: 0x0A0Aff })
+    );
+    wireframe.rotation.y = CONSTANT.degree270;
+    scaleUpBy(wireframe, globalState.scaleFactor);
+    globalState.scene.add(wireframe);
+    globalState.renderedWireframe = wireframe;
+
+    setToggleObjectById("toggleWireframe", globalState.renderedWireframe);
+}
+
+
+function renderObject(object) {
+    object.traverse(function (child) {
+        if (child instanceof THREE.Mesh) { // in case there are multiple components in the object
+            // render object
+            let mesh = new THREE.Mesh(child.geometry, child.material);
+            mesh.rotation.y = CONSTANT.degree270;
+            scaleUpBy(mesh, globalState.scaleFactor);
+            globalState.renderedObject = mesh;
+            globalState.scene.add(mesh);
+            renderedWireframe(child.geometry);
+            setToggleObjectById("toggleShow", globalState.renderedObject);
+        }
+    });
+}
+
+function loadAndRenderObject() {
+    const objLoader = new OBJLoader2();
+    // TODO: load from local fsys
+    objLoader.load('models/286/objs/source.obj', (root) => {
+        renderObject(root);
+    });
+    renderJointCandidates();
+}
+
+
+setupScene();
+loadAndRenderObject();
 requestAnimationFrame(render);
+
+// for debugging
+window.globalState = globalState;
