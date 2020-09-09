@@ -18,40 +18,13 @@ const globalState = {
 }
 
 const CONSTANT = {
-    degree270: 4.71
+    degree270: 4.71,
 }
 
-let SAMPLE_JOINT_LOCATIONS = [
-    [-0.3030651, -0.0789613, -0.2744476],
-    [-0.30377717, -0.072937, -0.28056133],
-    [0.30450148, -0.06736086, -0.27266805],
-    [0.30791167, -0.0381285, -0.2683055],
-    [0.30647807, -0.0906755, 0.3419955],
-    [-0.30262428, -0.09324889, 0.3422875],
-    [0.29374217, -0.040872, -0.24247183],
-    [-0.3000119, -0.0607598, -0.2583307],
-    [0.29917322, 0.92502611, -0.25896733],
-    [0.30873829, 0.86773271, -0.25061214],
-    [0.30782585, 0.80613995, -0.22947905],
-    [0.30764372, 0.74597067, -0.21616383],
-    [0.30982961, 0.68547178, -0.20661294],
-    [0.30757024, 0.62047247, -0.20094135],
-    [0.30655305, 0.55917005, -0.1947365],
-    [0.3125742, 0.49845487, -0.19103407],
-    [-0.30814722, 0.92304783, -0.26221333],
-    [-0.29638911, 0.87096278, -0.247115],
-    [-0.296074, 0.80737791, -0.22722436],
-    [-0.29789663, 0.74260338, -0.22107462],
-    [-0.2959845, 0.68400738, -0.2087295],
-    [-0.2949456, 0.6201756, -0.1983724],
-    [-0.30039192, 0.559004, -0.19301308],
-    [-0.2944785, 0.49684488, -0.19092563]
-]
-
-SAMPLE_JOINT_LOCATIONS = SAMPLE_JOINT_LOCATIONS.map((e) => {
-    let arr = [e[0] * 10, e[1] * 10, e[2] * 10];
-    return arr;
-    })
+const COLOR = {
+    SELECTED_BALL: '#000000',
+    UNSELECTED_BALL: '#AAAA00'
+}
 
 
 function setupScene() {
@@ -88,59 +61,38 @@ scene.background = new THREE.Color('gray');
 const clock = new THREE.Clock();
 let toggle = 0;
 
-document.addEventListener( 'click', onDocumentMouseClick, false );
+document.addEventListener('click', onDocumentMouseClick, false);
+document.addEventListener('mousemove', onDocumentMouseMove, false);
+// renderJointCandidates(286);
 
-document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-function onDocumentMouseMove( event ) {
+function onDocumentMouseMove(event) {
     event.preventDefault();
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 }
 
 
-function onDocumentMouseClick (event) {
-    // event.preventDefault();
-    raycaster.setFromCamera( mouse, camera );
-    let intersects = raycaster.intersectObjects( globalState.renderedJoints );
-    if ( intersects.length > 0 ) {
-        let intersect = intersects[ 0 ];
+// for toggle select status for balls
+function onDocumentMouseClick(event) {
+    event.preventDefault();
+    raycaster.setFromCamera(mouse, camera);
+    let intersects = raycaster.intersectObjects(globalState.renderedJoints);
+    if (intersects.length > 0) {
+        let intersect = intersects[0];
 
-        if ( globalState.renderedJoints.includes(intersect.object) ){
-        
-            // don't do tenary...
+        if (globalState.renderedJoints.includes(intersect.object)) {
+
+            // don't do tenary...CONSTANT
             if (intersect.object.selected == false) {
-                intersect.object.material.color.set('#000000');
+                intersect.object.material.color.set(COLOR.SELECTED_BALL);
             } else {
-                intersect.object.material.color.set('#AAAA00');
+                intersect.object.material.color.set(COLOR.UNSELECTED_BALL);
             }
             intersect.object.selected = !intersect.object.selected;
         }
     }
 
 
-}
-
-{
-    // const planeSize = 5;
-
-    // const loader = new THREE.TextureLoader();
-    // const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/checker.png');
-    // texture.wrapS = THREE.RepeatWrapping;
-    // texture.wrapT = THREE.RepeatWrapping;
-    // texture.magFilter = THREE.NearestFilter;
-    // const repeats = planeSize / 2;
-    // texture.repeat.set(repeats, repeats);
-
-    // const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-    // const planeMat = new THREE.MeshPhongMaterial({
-    //     map: texture,
-    //     side: THREE.DoubleSide,
-    // });
-    // const mesh = new THREE.Mesh(planeGeo, planeMat);
-    // mesh.position.set(0, -0.5, 0)
-    // mesh.rotation.x = Math.PI * -.5;
-    // scene.add(mesh);
 }
 
 const scaleUpBy = (obj, scaleFactor) => {
@@ -189,14 +141,32 @@ function render() {
 
 
 // joint candidates rendering
-function renderJointCandidates() {
-    for (let location in SAMPLE_JOINT_LOCATIONS) {
+function fetchJointCandidates(model_id) {
+    // .then(data => console.log(data));
+    fetch(`http://127.0.0.1:5000/api/v0.1/candidate_joints/${model_id}`, { method: 'get' })
+        .then(response => {
+            if (response.ok) {
+                response.json().then(json => {
+                    let joint_locations = json['joints'];
+                    joint_locations = joint_locations.map((e) => {
+                        let arr = [e[0] * 10, e[1] * 10, e[2] * 10];
+                        return arr;
+                    })
+
+                    renderJointCandidates(joint_locations);
+                });
+            }
+        })
+}
+
+function renderJointCandidates(joint_locations) {
+    for (let location in joint_locations) {
         const jointBall = new THREE.Mesh(
             new THREE.SphereGeometry(...globalState.jointSephereConfig),
-            new THREE.MeshPhongMaterial( {color: "#AAAA00"})
+            new THREE.MeshPhongMaterial({ color: "#AAAA00" })
         );
         // TODO: load from local fsys
-        jointBall.position.set(...SAMPLE_JOINT_LOCATIONS[location]);
+        jointBall.position.set(...joint_locations[location]);
         jointBall.selected = false;
         scene.add(jointBall);
 
@@ -209,7 +179,7 @@ function renderJointCandidates() {
 
 function renderedWireframe(objectGeometry) {
     const wireframe = new THREE.LineSegments(
-        new THREE.WireframeGeometry(objectGeometry), 
+        new THREE.WireframeGeometry(objectGeometry),
         new THREE.LineBasicMaterial({ color: 0x0A0Aff })
     );
     wireframe.rotation.y = CONSTANT.degree270;
@@ -219,7 +189,6 @@ function renderedWireframe(objectGeometry) {
 
     setToggleObjectById("toggleWireframe", globalState.renderedWireframe);
 }
-
 
 function renderObject(object) {
     object.traverse(function (child) {
@@ -239,15 +208,27 @@ function renderObject(object) {
 function loadAndRenderObject() {
     const objLoader = new OBJLoader2();
     // TODO: load from local fsys
-    objLoader.load('models/286/objs/source.obj', (root) => {
+    // const path = 'models/286/objs/source.obj';
+    // const model_id = 20390;
+    const model_id = document.getElementById("modelIdInput").value;
+
+    const path = `models/${model_id}/objs/source.obj`;
+    objLoader.load(path, (root) => {
         renderObject(root);
     });
-    renderJointCandidates();
+
+    fetchJointCandidates(model_id);
 }
 
 
+document.getElementById('loadModel').addEventListener("click", (e) => {
+    e.preventDefault();
+    loadAndRenderObject();
+});
+
+
 setupScene();
-loadAndRenderObject();
+// loadAndRenderObject();
 requestAnimationFrame(render);
 
 // for debugging
