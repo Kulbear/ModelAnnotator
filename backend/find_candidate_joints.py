@@ -19,12 +19,10 @@ def knnsearch(target, source, metrics='euclidean', k_size=1, leaf_sizes=30, ):
 
 def part_joints(fname_label, fname_verts, save_name='test', threshold=0.020, ):
     # read txt
-    # print()
     verts_label = np.loadtxt(fname_label)
     verts = np.loadtxt(fname_verts)
 
     # get parts
-
     labels = np.unique(verts_label)
     num_parts = labels.shape[0]
 
@@ -56,10 +54,10 @@ def part_joints(fname_label, fname_verts, save_name='test', threshold=0.020, ):
 
     interJoints_array = np.asarray(interJoints)
 
-    np.save(save_name + '.npy', interJoints_array)
-
     mesh = trimesh.Trimesh(vertices=interJoints_array, process=False)
-    mesh.export(save_name + '.ply')
+    # THESE TWO FKING LINES OF CODE will cause the browser to force refresh. I have fking no idea why.
+    # np.save(save_name + '.npy', interJoints_array)
+    # mesh.export(save_name + '.ply')
     return interJoints_array
 
 

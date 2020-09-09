@@ -18,9 +18,8 @@ def get_candidate_joints(model_id):
     fname_verts = fpath + 'pts-10000.txt'
 
     array = part_joints(fname_label, fname_verts, save_name='test2')
-    # print(array)
-    # print({'joints': array.tolist()})
     return jsonify({'joints': array.tolist()}) 
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
