@@ -44,8 +44,9 @@ function setupScene() {
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ canvas });
 
-const mouse = new THREE.Vector2()
+const mouse = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
+raycaster.params.Line.threshold = 0.1;
 
 const camera = new THREE.PerspectiveCamera(...globalState.cameraSettings);
 camera.position.set(1, 0.5, 3);
@@ -58,20 +59,50 @@ controls.target.set(0, 0, 0);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('gray');
 
-const clock = new THREE.Clock();
-let toggle = 0;
+// set up cursor
+const cursor = new THREE.Mesh(
+    new THREE.SphereBufferGeometry(0.5),
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+cursor.visible = false;
+scene.add(cursor);
 
 document.addEventListener('click', onDocumentMouseClick, false);
 document.addEventListener('mousemove', onDocumentMouseMove, false);
-// renderJointCandidates(286);
 
 function onDocumentMouseMove(event) {
     event.preventDefault();
 
     mouse.x = ((event.clientX - renderer.domElement.offsetLeft) / renderer.domElement.width) * 2 - 1;
     mouse.y = -((event.clientY - renderer.domElement.offsetTop) / renderer.domElement.height) * 2 + 1;
+
+
+    if (globalState.renderedObject != null) {
+        var intersects = raycaster.intersectObject(globalState.renderedObject, true);
+        if (intersects.length > 0) {
+            // TODO: now if click over exsiting joints, we still see the cursor.
+            cursor.visible = true;
+            cursor.position.copy(intersects[0].point);
+
+        } else {
+            cursor.visible = false;
+        }
+
+    }
 }
 
+document.addEventListener("keypress", function (event) {
+    // TODO: maybe not a good idea to monitor "Enter"?
+    if (event.keyCode == 13) {
+        if (cursor.visible) {
+            const jointBall = createOneJoint([cursor.position.x, cursor.position.y, cursor.position.z]);
+            scene.add(jointBall);
+
+            // for later control purpose, order not matters
+            globalState.renderedJoints.push(jointBall);
+        }
+    }
+});
 
 // for toggle select status for balls
 function onDocumentMouseClick(event) {
@@ -160,15 +191,21 @@ function fetchJointCandidates(model_id) {
         })
 }
 
+
+function createOneJoint(location) {
+    const jointBall = new THREE.Mesh(
+        new THREE.SphereGeometry(...globalState.jointSephereConfig),
+        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_BALL })
+    );
+    // TODO: load from local fsys
+    jointBall.position.set(...location);
+    jointBall.selected = false;
+    return jointBall
+}
+
 function renderJointCandidates(joint_locations) {
     for (let location in joint_locations) {
-        const jointBall = new THREE.Mesh(
-            new THREE.SphereGeometry(...globalState.jointSephereConfig),
-            new THREE.MeshPhongMaterial({ color: "#AAAA00" })
-        );
-        // TODO: load from local fsys
-        jointBall.position.set(...joint_locations[location]);
-        jointBall.selected = false;
+        const jointBall = createOneJoint(joint_locations[location])
         scene.add(jointBall);
 
         // for later control purpose, order not matters
@@ -195,6 +232,7 @@ function renderObject(object) {
     object.traverse(function (child) {
         if (child instanceof THREE.Mesh) { // in case there are multiple components in the object
             // render object
+            child.material.side = THREE.DoubleSide;
             let mesh = new THREE.Mesh(child.geometry, child.material);
             mesh.rotation.y = CONSTANT.degree270;
             scaleUpBy(mesh, globalState.scaleFactor);
