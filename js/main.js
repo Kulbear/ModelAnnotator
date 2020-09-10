@@ -1,5 +1,7 @@
 import * as THREE from '../threejs/build/three.module.js';
 import { OrbitControls } from '../threejs/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from '../threejs/examples/jsm/controls/TransformControls.js';
+import { DragControls } from '../threejs/examples/jsm/controls/DragControls.js';
 import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
 
 
@@ -67,8 +69,85 @@ const cursor = new THREE.Mesh(
 cursor.visible = false;
 scene.add(cursor);
 
+// // grid helper 
+// var helper = new THREE.GridHelper( 10, 10 );
+// helper.position.y = - 199;
+// helper.material.opacity = 0.25;
+// helper.material.transparent = true;
+// scene.add( helper );
+
 document.addEventListener('click', onDocumentMouseClick, false);
 document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+// transform contorol
+const transformControl = new TransformControls(camera, renderer.domElement);
+transformControl.addEventListener('change', render);
+transformControl.addEventListener('dragging-changed', function (event) {
+
+    controls.enabled = !event.value;
+
+});
+scene.add(transformControl);
+
+// Hiding transform situation is a little in a mess :()
+transformControl.addEventListener('change', function () {
+
+    cancelHideTransform();
+
+});
+
+transformControl.addEventListener('mouseDown', function () {
+
+    cancelHideTransform();
+
+});
+
+transformControl.addEventListener('mouseUp', function () {
+
+    delayHideTransform();
+
+});
+
+var hiding;
+
+function delayHideTransform() {
+
+    cancelHideTransform();
+    hideTransform();
+
+}
+
+function hideTransform() {
+
+    hiding = setTimeout(function () {
+
+        transformControl.detach(transformControl.object);
+
+    }, 2500);
+
+}
+
+function cancelHideTransform() {
+
+    if (hiding) clearTimeout(hiding);
+
+}
+
+var dragcontrols = new DragControls(globalState.renderedJoints, camera, renderer.domElement); //
+dragcontrols.enabled = false;
+dragcontrols.addEventListener('hoveron', function (event) {
+
+    transformControl.attach(event.object);
+    cancelHideTransform();
+
+});
+
+dragcontrols.addEventListener('hoveroff', function () {
+
+    delayHideTransform();
+
+});
+
 
 function onDocumentMouseMove(event) {
     event.preventDefault();
