@@ -1,12 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 import numpy as np
 import scipy
 import trimesh
 from sklearn.neighbors import NearestNeighbors, KDTree
 
 
-def knnsearch(target, source, metrics='euclidean', k_size=1, leaf_sizes=30, ):
+def knnsearch(target, source, metrics='euclidean', k_size=1, leaf_sizes=30,):
     # make sure they have the same size
 
     if not target.shape[1] == source.shape[1]:
@@ -17,12 +18,15 @@ def knnsearch(target, source, metrics='euclidean', k_size=1, leaf_sizes=30, ):
     return (distances, averagedist, indices)
 
 
-def part_joints(fname_label, fname_verts, save_name='test', threshold=0.020, ):
+def part_joints(fname_label, fname_verts, save_name='test', threshold=0.020):
+
     # read txt
+
     verts_label = np.loadtxt(fname_label)
     verts = np.loadtxt(fname_verts)
 
     # get parts
+
     labels = np.unique(verts_label)
     num_parts = labels.shape[0]
 
@@ -35,7 +39,12 @@ def part_joints(fname_label, fname_verts, save_name='test', threshold=0.020, ):
         mesh.append(current_verts)
 
     interJoints = []
+    partsMean = []
     for i in range(num_parts):
+        verts_current = mesh[i]
+        mean_verts = np.mean(verts_current, axis=0)
+        partsMean.append(mean_verts)
+
         for j in range(i + 1, num_parts):
             verts_i = mesh[i]
             verts_j = mesh[j]
@@ -47,17 +56,18 @@ def part_joints(fname_label, fname_verts, save_name='test', threshold=0.020, ):
                 continue
 
             idx = np.where(distance < threshold)
-            boundary_verts = np.squeeze(verts_i[idx[0], :])
-            center_joints = np.mean(boundary_verts, axis=0)
+
+            if len(idx[0]) > 1:
+                boundary_verts = np.squeeze(verts_i[idx[0], :])
+                center_joints = np.mean(boundary_verts, axis=0)
+            else:
+                center_joints = np.squeeze(verts_i[idx[0], :])
 
             interJoints.append(center_joints)
 
+    partsMean_array = np.asarray(partsMean)
     interJoints_array = np.asarray(interJoints)
 
-    mesh = trimesh.Trimesh(vertices=interJoints_array, process=False)
-    # THESE TWO FKING LINES OF CODE will cause the browser to force refresh. I have fking no idea why.
-    # np.save(save_name + '.npy', interJoints_array)
-    # mesh.export(save_name + '.ply')
     return interJoints_array
 
 
