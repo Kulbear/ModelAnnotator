@@ -40,7 +40,6 @@ function setupScene() {
     directionalLight.position.set(0, 10, 0);
     directionalLight.target.position.set(-5, 0, 0);
     scene.add(directionalLight);
-    // scene.add(directionalLight.target);
 }
 
 const canvas = document.querySelector('#c');
@@ -56,7 +55,6 @@ camera.position.set(10, 5, 30);
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(0, 0, 0);
-// controls.update();
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('gray');
@@ -69,12 +67,6 @@ const cursor = new THREE.Mesh(
 cursor.visible = false;
 scene.add(cursor);
 
-// // grid helper 
-// var helper = new THREE.GridHelper( 10, 10 );
-// helper.position.y = - 199;
-// helper.material.opacity = 0.25;
-// helper.material.transparent = true;
-// scene.add( helper );
 
 document.addEventListener('click', onDocumentMouseClick, false);
 document.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -133,7 +125,7 @@ function cancelHideTransform() {
 
 }
 
-var dragcontrols = new DragControls(globalState.renderedJoints, camera, renderer.domElement); //
+const dragcontrols = new DragControls(globalState.renderedJoints, camera, renderer.domElement); //
 dragcontrols.enabled = false;
 dragcontrols.addEventListener('hoveron', function (event) {
 
@@ -172,7 +164,7 @@ function onDocumentMouseMove(event) {
 
 document.addEventListener("keypress", function (event) {
     // TODO: maybe not a good idea to monitor "Enter"?
-    if (event.keyCode == 13) {
+    if (event.code == 'KeyA') {
         if (cursor.visible) {
             const jointBall = createOneJoint([cursor.position.x, cursor.position.y, cursor.position.z]);
             scene.add(jointBall);
@@ -181,7 +173,29 @@ document.addEventListener("keypress", function (event) {
             globalState.renderedJoints.push(jointBall);
         }
     }
+
+
+    if (event.code == 'KeyD') {
+        raycaster.setFromCamera(mouse, camera);
+        let intersects = raycaster.intersectObjects(globalState.renderedJoints);
+        if (intersects.length > 0) {
+            let intersect = intersects[0];
+            if (globalState.renderedJoints.includes(intersect.object)) {
+                globalState.renderedJoints = globalState.renderedJoints.filter((e) => {
+                    console.log(e.uuid == intersect.object.uuid);
+                    return e.uuid !== intersect.object.uuid;
+                })
+
+                // must detach to avoid the following error
+                // TransformControls: The attached 3D object must be a part of the scene graph.
+                transformControl.detach(intersect.object);
+                scene.remove(intersect.object);
+            }
+        }
+    }
 });
+
+
 
 // for toggle select status for balls
 function onDocumentMouseClick(event) {
@@ -239,7 +253,6 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 function render() {
-
     if (resizeRendererToDisplaySize(renderer)) {
         const canvas = renderer.domElement;
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -274,11 +287,11 @@ function fetchJointCandidates(model_id) {
 function createOneJoint(location) {
     const jointBall = new THREE.Mesh(
         new THREE.SphereGeometry(...globalState.jointSephereConfig),
-        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_BALL })
+        new THREE.MeshPhongMaterial({ color: COLOR.SELECTED_BALL })
     );
     // TODO: load from local fsys
     jointBall.position.set(...location);
-    jointBall.selected = false;
+    jointBall.selected = true;
     return jointBall
 }
 
