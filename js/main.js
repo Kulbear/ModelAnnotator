@@ -12,7 +12,9 @@ const globalState = {
     renderedJoints: [],
     renderedObject: null,
     renderedWireframe: null,
-    scene: null
+    scene: null,
+
+    selectedJoint: null
 }
 
 const CONSTANT = {
@@ -28,8 +30,8 @@ const CONFIGS = {
 }
 
 const COLOR = {
-    SELECTED_BALL: '#000000',
-    UNSELECTED_BALL: '#AAAA00'
+    SELECTED_BALL: '#AAAA00',
+    UNSELECTED_BALL: '#AA33FF'
 }
 
 const scaleUpBy = (obj, scaleFactor) => {
@@ -253,12 +255,19 @@ function onDocumentMouseClick(event) {
         let intersect = intersects[0];
 
         if (globalState.renderedJoints.includes(intersect.object)) {
-            if (intersect.object.selected == false) {
-                intersect.object.material.color.set(COLOR.SELECTED_BALL);
-            } else {
-                intersect.object.material.color.set(COLOR.UNSELECTED_BALL);
+
+            // reset previously selected joint
+            if (globalState.selectedJoint != null) {
+                globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
+                globalState.selectedJoint.selected = false;
+                globalState.selectedJoint = null;
             }
-            intersect.object.selected = !intersect.object.selected;
+
+            // select current joint and update
+            globalState.selectedJoint = intersect.object;
+            globalState.selectedJoint.material.color.set(COLOR.SELECTED_BALL);
+            globalState.selectedJoint.selected = true;
+            // TODO: load current joint info
         }
     }
 
@@ -301,6 +310,9 @@ function fetchJointCandidates(model_id) {
                         return arr;
                     })
 
+                    let model_cat = json['model_cat'];
+                    $('#modelType').text(model_cat);
+
                     renderJointCandidates(joint_locations);
                 });
             }
@@ -311,11 +323,11 @@ function fetchJointCandidates(model_id) {
 function createOneJoint(location) {
     const jointBall = new THREE.Mesh(
         new THREE.SphereGeometry(...globalState.jointSephereConfig),
-        new THREE.MeshPhongMaterial({ color: COLOR.SELECTED_BALL })
+        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_BALL })
     );
     // TODO: load from local fsys
     jointBall.position.set(...location);
-    jointBall.selected = true;
+    jointBall.selected = false;
     return jointBall
 }
 
