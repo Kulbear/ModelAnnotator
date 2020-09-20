@@ -7,10 +7,6 @@ import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
 
 // You all-in-one fake state manager
 const globalState = {
-    scaleFactor: 22.5, // for unknown reason either the scale of the object or the joints are not correct, hard-coded workaround only
-    lightIntensity: 1,
-    cameraSettings: [45, 1, 0.1, 100],  // FoV, aspect, near, far,
-
     // joints
     jointSephereConfig: [0.2, 10, 10],
     renderedJoints: [],
@@ -23,16 +19,48 @@ const CONSTANT = {
     degree270: 4.71,
 }
 
+const CONFIGS = {
+    scaleFactor: 22.5, // for unknown reason either the scale of the object or the joints are not correct, hard-coded workaround only
+    lightIntensity: 1,
+    cameraParams: [45, 1, 0.1, 100],  // FoV, aspect, near, far
+    cameraPosition: [10, 5, 30],
+    raycasterLineThres: 0.1
+}
+
 const COLOR = {
     SELECTED_BALL: '#000000',
     UNSELECTED_BALL: '#AAAA00'
 }
 
+const scaleUpBy = (obj, scaleFactor) => {
+    obj.scale.x = scaleFactor;
+    obj.scale.y = scaleFactor;
+    obj.scale.z = scaleFactor;
+}
+
+function setToggleObjectById(elementDOMId, object) {
+    document.getElementById(elementDOMId).addEventListener("click", () => {
+        object.visible = !object.visible;
+    });
+}
+
+function setToggleObjectsById(elementDOMId, objects) {
+    document.getElementById(elementDOMId).addEventListener("click", () => {
+        for (let idx in objects) {
+            objects[idx].visible = !objects[idx].visible;
+        }
+    });
+}
+
+
+// ===================================== Main Implementation ===================================== //
+
+
 
 function setupScene() {
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
-    const lightHemi = new THREE.HemisphereLight(skyColor, groundColor, globalState.lightIntensity);
+    const lightHemi = new THREE.HemisphereLight(skyColor, groundColor, CONFIGS.lightIntensity);
     scene.add(lightHemi);
 
     const color = 0xFFFFFF;
@@ -44,20 +72,19 @@ function setupScene() {
 
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ canvas });
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('gray');
 
+// for all the interactions around objects in the scene
 const mouse = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
-raycaster.params.Line.threshold = 0.1;
+raycaster.params.Line.threshold = CONFIGS.raycasterLineThres;
 
-const camera = new THREE.PerspectiveCamera(...globalState.cameraSettings);
-camera.position.set(1, 0.5, 3);
-camera.position.set(10, 5, 30);
+const camera = new THREE.PerspectiveCamera(...CONFIGS.cameraParams);
+camera.position.set(...CONFIGS.cameraPosition);
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(0, 0, 0);
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color('gray');
 
 // set up cursor
 const cursor = new THREE.Mesh(
@@ -67,11 +94,7 @@ const cursor = new THREE.Mesh(
 cursor.visible = false;
 scene.add(cursor);
 
-
-document.addEventListener('click', onDocumentMouseClick, false);
-document.addEventListener('mousemove', onDocumentMouseMove, false);
-
-// transform contorol
+// transform/drag contorol for joints
 const transformControl = new TransformControls(camera, renderer.domElement);
 const dragcontrols = new DragControls(globalState.renderedJoints, camera, renderer.domElement);
 dragcontrols.enabled = false;
@@ -150,6 +173,10 @@ dragcontrols.enabled = false;
 
 }
 
+
+document.addEventListener('click', onDocumentMouseClick, false);
+document.addEventListener('mousemove', onDocumentMouseMove, false);
+
 function onDocumentMouseMove(event) {
     event.preventDefault();
 
@@ -227,26 +254,6 @@ function onDocumentMouseClick(event) {
 
 }
 
-const scaleUpBy = (obj, scaleFactor) => {
-    obj.scale.x = scaleFactor;
-    obj.scale.y = scaleFactor;
-    obj.scale.z = scaleFactor;
-}
-
-function setToggleObjectById(elementDOMId, object) {
-    document.getElementById(elementDOMId).addEventListener("click", () => {
-        object.visible = !object.visible;
-    });
-}
-
-function setToggleObjectsById(elementDOMId, objects) {
-    document.getElementById(elementDOMId).addEventListener("click", () => {
-        for (let idx in objects) {
-            objects[idx].visible = !objects[idx].visible;
-        }
-    });
-}
-
 // adaptive resize canvas display and rendering
 function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
@@ -271,9 +278,8 @@ function render() {
 }
 
 
-// joint candidates rendering
+// joint candidates fetching and rendering
 function fetchJointCandidates(model_id) {
-    // .then(data => console.log(data));
     fetch(`http://127.0.0.1:5000/api/v0.1/candidate_joints/${model_id}`, { method: 'get' })
         .then(response => {
             if (response.ok) {
@@ -303,6 +309,8 @@ function createOneJoint(location) {
 }
 
 function renderJointCandidates(joint_locations) {
+    if (globalState.renderedJoints.length > 0) return;
+
     for (let location in joint_locations) {
         const jointBall = createOneJoint(joint_locations[location])
         scene.add(jointBall);
@@ -314,15 +322,20 @@ function renderJointCandidates(joint_locations) {
     setToggleObjectsById("toggleJoints", globalState.renderedJoints);
 }
 
-function renderedWireframe(objectGeometry) {
+function renderWireframe(objectGeometry) {
+
     const wireframe = new THREE.LineSegments(
         new THREE.WireframeGeometry(objectGeometry),
         new THREE.LineBasicMaterial({ color: 0x0A0Aff })
     );
+
     wireframe.rotation.y = CONSTANT.degree270;
-    scaleUpBy(wireframe, globalState.scaleFactor);
-    scene.add(wireframe);
+
+    // TODO: haven't fix this >_<
+    scaleUpBy(wireframe, CONFIGS.scaleFactor);
+
     globalState.renderedWireframe = wireframe;
+    scene.add(wireframe);
 
     setToggleObjectById("toggleWireframe", globalState.renderedWireframe);
 }
@@ -332,26 +345,36 @@ function renderObject(object) {
         if (child instanceof THREE.Mesh) { // in case there are multiple components in the object
             // render object
             child.material.side = THREE.DoubleSide;
-            let mesh = new THREE.Mesh(child.geometry, child.material);
+            const mesh = new THREE.Mesh(child.geometry, child.material);
             mesh.rotation.y = CONSTANT.degree270;
-            scaleUpBy(mesh, globalState.scaleFactor);
+
+            // TODO: haven't fix this >_<
+            scaleUpBy(mesh, CONFIGS.scaleFactor);
+
             globalState.renderedObject = mesh;
             scene.add(mesh);
-            renderedWireframe(child.geometry);
+
+            renderWireframe(child.geometry);
             setToggleObjectById("toggleShow", globalState.renderedObject);
         }
     });
 }
 
 function loadAndRenderObject() {
+    // when model is loaded, ignore the rest to avoid duplicated rendered objects
+    if (globalState.renderedObject != null) return;
+
+    // create loader and load model by given id from disk
     const objLoader = new OBJLoader2();
     const model_id = document.getElementById("modelIdInput").value;
 
     const path = `models/${model_id}/objs/source.obj`;
+    // note here we render BOTH the object and the wireframe due to the hierachical model object structure
     objLoader.load(path, (root) => {
         renderObject(root);
     });
 
+    // fetch candidate joints from backend
     fetchJointCandidates(model_id);
 }
 
@@ -363,6 +386,7 @@ document.getElementById('loadModel').addEventListener("click", (e) => {
 
 
 setupScene();
+// leave this line here for easy debugging
 // loadAndRenderObject();
 requestAnimationFrame(render);
 
