@@ -61,7 +61,7 @@ scene.background = new THREE.Color('gray');
 
 // set up cursor
 const cursor = new THREE.Mesh(
-    new THREE.SphereBufferGeometry(0.5),
+    new THREE.SphereBufferGeometry(0.15),
     new THREE.MeshBasicMaterial({ color: 0xff0000 })
 );
 cursor.visible = false;
@@ -73,73 +73,82 @@ document.addEventListener('mousemove', onDocumentMouseMove, false);
 
 // transform contorol
 const transformControl = new TransformControls(camera, renderer.domElement);
-transformControl.addEventListener('change', render);
-transformControl.addEventListener('dragging-changed', function (event) {
-
-    controls.enabled = !event.value;
-
-});
-scene.add(transformControl);
-
-// Hiding transform situation is a little in a mess :()
-transformControl.addEventListener('change', function () {
-
-    cancelHideTransform();
-
-});
-
-transformControl.addEventListener('mouseDown', function () {
-
-    cancelHideTransform();
-
-});
-
-transformControl.addEventListener('mouseUp', function () {
-
-    delayHideTransform();
-
-});
-
-var hiding;
-
-function delayHideTransform() {
-
-    cancelHideTransform();
-    hideTransform();
-
-}
-
-function hideTransform() {
-
-    hiding = setTimeout(function () {
-
-        transformControl.detach(transformControl.object);
-
-    }, 2500);
-
-}
-
-function cancelHideTransform() {
-
-    if (hiding) clearTimeout(hiding);
-
-}
-
-const dragcontrols = new DragControls(globalState.renderedJoints, camera, renderer.domElement); //
+const dragcontrols = new DragControls(globalState.renderedJoints, camera, renderer.domElement);
 dragcontrols.enabled = false;
-dragcontrols.addEventListener('hoveron', function (event) {
 
-    transformControl.attach(event.object);
-    cancelHideTransform();
+{
+    let hiding;
 
-});
+    transformControl.addEventListener('change', render);
 
-dragcontrols.addEventListener('hoveroff', function () {
+    transformControl.addEventListener('dragging-changed', function (event) {
 
-    delayHideTransform();
+        controls.enabled = !event.value;
 
-});
+    });
 
+    scene.add(transformControl);
+
+    transformControl.detach();
+
+    // Hiding transform situation is a little in a mess :()
+    transformControl.addEventListener('change', function () {
+
+        cancelHideTransform();
+
+    });
+
+    transformControl.addEventListener('mouseDown', function () {
+
+        cancelHideTransform();
+
+    });
+
+    transformControl.addEventListener('mouseUp', function () {
+
+        delayHideTransform();
+
+    });
+
+
+    function delayHideTransform() {
+
+        cancelHideTransform();
+        hideTransform();
+
+    }
+
+    function hideTransform() {
+
+        hiding = setTimeout(() => {
+
+            transformControl.detach(transformControl.object);
+
+        }, 1500);
+
+    }
+
+    function cancelHideTransform() {
+
+        if (hiding) clearTimeout(hiding);
+
+    }
+
+
+    dragcontrols.addEventListener('hoveron', function (event) {
+
+        transformControl.attach(event.object);
+        cancelHideTransform();
+
+    });
+
+    dragcontrols.addEventListener('hoveroff', function () {
+
+        delayHideTransform();
+
+    });
+
+}
 
 function onDocumentMouseMove(event) {
     event.preventDefault();
@@ -206,8 +215,6 @@ function onDocumentMouseClick(event) {
         let intersect = intersects[0];
 
         if (globalState.renderedJoints.includes(intersect.object)) {
-
-            // don't do tenary...CONSTANT
             if (intersect.object.selected == false) {
                 intersect.object.material.color.set(COLOR.SELECTED_BALL);
             } else {
