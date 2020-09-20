@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from find_candidate_joints import part_joints
+import json
 app = Flask(__name__)
 CORS(app)
 
@@ -13,12 +14,19 @@ def index():
 
 @app.route('/api/v0.1/candidate_joints/<int:model_id>')
 def get_candidate_joints(model_id):
-    fpath = f'{MODEL_FILE_PATH}/{model_id}/point_sample/'
-    fname_label = fpath + 'label-10000.txt'
-    fname_verts = fpath + 'pts-10000.txt'
+    fpath = f'{MODEL_FILE_PATH}/{model_id}'
+    
+    fname_label = fpath + '/point_sample/label-10000.txt'
+    fname_verts = fpath + '/point_sample/pts-10000.txt'
+
+    with open(fpath + '/meta.json') as f:
+        data = json.load(f)
 
     array = part_joints(fname_label, fname_verts, save_name='test2')
-    return jsonify({'joints': array.tolist()}) 
+    return jsonify({
+        'joints': array.tolist(),
+        'model_cat': data['model_cat']
+        }) 
 
 
 if __name__ == '__main__':
