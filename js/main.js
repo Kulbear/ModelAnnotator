@@ -180,8 +180,12 @@ document.addEventListener('mousemove', onDocumentMouseMove, false);
 function onDocumentMouseMove(event) {
     event.preventDefault();
 
+    // TODO: this won't work with fancier layout
     mouse.x = ((event.clientX - renderer.domElement.offsetLeft) / renderer.domElement.width) * 2 - 1;
     mouse.y = -((event.clientY - renderer.domElement.offsetTop) / renderer.domElement.height) * 2 + 1;
+    //     var rect = renderer.domElement.getBoundingClientRect();
+    // mouse.x = ( ( event.clientX - rect.left ) / ( rect.width - rect.left ) ) * 2 - 1;
+    // mouse.y = - ( ( event.clientY - rect.top ) / ( rect.bottom - rect.top) ) * 2 + 1;
 
 
     if (globalState.renderedObject != null) {
@@ -210,7 +214,6 @@ document.addEventListener("keypress", function (event) {
         }
     }
 
-
     if (event.code == 'KeyD') {
         raycaster.setFromCamera(mouse, camera);
         let intersects = raycaster.intersectObjects(globalState.renderedJoints);
@@ -228,6 +231,14 @@ document.addEventListener("keypress", function (event) {
                 scene.remove(intersect.object);
             }
         }
+    }
+
+    if (event.code == 'KeyQ') {
+        globalState.renderedObject.visible = !globalState.renderedObject.visible;
+    }
+
+    if (event.code == 'KeyW') {
+        globalState.renderedWireframe.visible = !globalState.renderedWireframe.visible;
     }
 });
 
