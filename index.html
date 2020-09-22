@@ -6,20 +6,56 @@
         <meta
             name="viewport"
             content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
-        />
+            />
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
         <link type="text/css" rel="stylesheet" href="css/style.css" />
     </head>
-
     <body>
+        <!-- Modal -->
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="helpModalLabel">Help Modal</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <ul>
+                            <li>Click a part on the model and <b>press A</b> to add a joint.</li>
+                            <li>Hover on a joint and <b>press D</b> to remove the joint.</li>
+                        </ul>
+                        <h6>After loading the model successfully...</h6>
+                        <ul>
+                            <li>Press <b>Q</b> to toggle the model.</li>
+                            <li>Press <b>W</b> to toggle the wireframe.</li>
+                            <li>To be added...</li>
+                        </ul>
+                        <b>Click anywhere outside or press ESC to close me!</b>
+                    </div>
+                </div>
+            </div>
+        </div>
         <canvas id="c"></canvas>
         <div class="container">
             <div class="row">
                 <div class="col-4">
-                    <button id="toggleShow" type="button" class="btn btn-outline-primary button-fill-hori">Toggle Model (Q)</button>
-                    <button id="toggleWireframe" type="button" class="btn btn-outline-primary button-fill-hori">Toggle Wireframe (W)</button>
-                    <button id="toggleJoints" type="button" class="btn btn-outline-primary button-fill-hori">Toggle Candidate Joints</button>
-                    <button id="saveAnnotation" type="button" class="btn btn-outline-primary button-fill-hori">Save Annotation</button>
+                    <button id="toggleShow" type="button" class="btn btn-outline-primary button-fill-hori">
+                    Toggle Model (Q)
+                    </button>
+                    <button id="toggleWireframe" type="button" class="btn btn-outline-primary button-fill-hori">
+                    Toggle Wireframe (W)
+                    </button>
+                    <button id="toggleJoints" type="button" class="btn btn-outline-primary button-fill-hori">
+                    Toggle Candidate Joints
+                    </button>
+                    <button id="saveAnnotation" type="button" class="btn btn-outline-primary button-fill-hori">
+                    Save Annotation
+                    </button>
+                    <button type="button" class="btn btn-outline-primary button-fill-hori" data-toggle="modal" data-target="#helpModal">
+                    Help (H)
+                    </button>
                 </div>
                 <div class="col-4">
                     <form>
@@ -36,7 +72,6 @@
                 </div>
             </div>
         </div>
-
         <!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
         <script type="module" src="/js/main.js"></script>
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
