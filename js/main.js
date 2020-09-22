@@ -205,6 +205,11 @@ function onDocumentMouseMove(event) {
 }
 
 document.addEventListener("keypress", function (event) {
+    // trigger help modal
+    if (event.code == 'KeyH') {
+        $("#modalTrigger").click()
+    }
+
     // TODO: maybe not a good idea to monitor "Enter"?
     if (event.code == 'KeyA') {
         if (cursor.visible) {
