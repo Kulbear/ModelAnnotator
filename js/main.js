@@ -204,7 +204,7 @@ dragcontrols.enabled = false;
 
             transformControl.detach(transformControl.object);
 
-        }, 1500);
+        }, 200);
 
     }
 
@@ -313,6 +313,7 @@ function createOneJoint(location) {
     jointBall.position.set(...location);
     jointBall.selected = false;
     jointBall.annotated = false;
+    jointBall.typeAnnotation = null;
     return jointBall
 }
 
@@ -390,7 +391,15 @@ setupScene();
 requestAnimationFrame(render);
 
 function saveAnnotation() {
-    //TODO: remember to save transformations
+    // TODO: save joint info and transformations
+    console.log(transformationParams);
+
+    const joints = globalState.renderedJoints;
+    for (let idx in joints) {
+        let joint = joints[idx];
+        if (joint.annotated == false) console.log(joint, 'is not annotated with joint type!');
+        else console.log(joint, joint.typeAnnotation);
+    }
 }
 
 function updateJointToForm(joint) {
@@ -398,9 +407,11 @@ function updateJointToForm(joint) {
         const x = joint.position.x;
         const y = joint.position.y;
         const z = joint.position.z;
+        const typeAnnotation = joint.typeAnnotation;
         $('#jointX')[0].value = x;
         $('#jointY')[0].value = y;
         $('#jointZ')[0].value = z;
+        $('#jointCategorySelect')[0].value = typeAnnotation;
     }
 }
 
@@ -468,15 +479,13 @@ document.addEventListener("keypress", function (event) {
     }
 
     if (event.code == 'KeyD') {
+        //TODO: throttle this?
         raycaster.setFromCamera(mouse, camera);
         let intersects = raycaster.intersectObjects(globalState.renderedJoints);
         if (intersects.length > 0) {
             let intersect = intersects[0];
             if (globalState.renderedJoints.includes(intersect.object)) {
-                globalState.renderedJoints = globalState.renderedJoints.filter((e) => {
-                    console.log(e.uuid == intersect.object.uuid);
-                    return e.uuid !== intersect.object.uuid;
-                })
+                globalState.renderedJoints = globalState.renderedJoints.filter((e) => e.uuid !== intersect.object.uuid)
 
                 // must detach to avoid the following error
                 // TransformControls: The attached 3D object must be a part of the scene graph.
@@ -484,6 +493,7 @@ document.addEventListener("keypress", function (event) {
                 scene.remove(intersect.object);
             }
         }
+
     }
 
     if (event.code == 'KeyQ') {
@@ -501,6 +511,11 @@ document.addEventListener('mousemove', onDocumentMouseMove, false);
 document.getElementById('loadModel').addEventListener("click", (e) => {
     e.preventDefault();
     loadAndRenderObject();
+});
+
+document.getElementById('saveAnnotation').addEventListener("click", (e) => {
+    e.preventDefault();
+    saveAnnotation();
 });
 
 
