@@ -256,6 +256,11 @@ function onDocumentMouseClick(event) {
     event.preventDefault();
     raycaster.setFromCamera(mouse, camera);
     let intersects = raycaster.intersectObjects(globalState.renderedJoints);
+    if (intersects.length == 0) {
+        globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
+        globalState.selectedJoint.selected = false;
+        globalState.selectedJoint = null;
+    }
     if (intersects.length > 0) {
         let intersect = intersects[0];
 
