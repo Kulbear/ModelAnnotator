@@ -11,8 +11,8 @@ const globalState = {
     // joints
     jointSephereConfig: [0.2, 10, 10],
     renderedJoints: [],
-    renderedObject: null,
-    renderedWireframe: null,
+    renderedObject: [],
+    renderedWireframe: [],
     scene: null,
 
     selectedJoint: null,
@@ -21,9 +21,12 @@ const globalState = {
 }
 
 // for model and wireframe
-let guiParams = {
-    scale: 1,
-    rotation: 0
+let transformationParams = {
+    scale: 15,
+    rotation: 0,
+    transX: 0,
+    transY: 0,
+    transZ: 0,
 }
 
 const ROTATIONS = {
@@ -90,23 +93,48 @@ scene.background = new THREE.Color('lightgray');
 
 // GUI
 const gui = new GUI({ width: 250 });
-// by default we hide the GUI and only display it when the model is loaded
-// GUI is shown after the model is loaded, see loadAndRenderObject()
-GUI.toggleHide();
-const objTransformation = gui.addFolder('Object Transformations');
-objTransformation.add(guiParams, 'scale', 1, 30).step(0.01).onChange(function () {
-    scaleUpBy(globalState.renderedObject, guiParams.scale);
-    scaleUpBy(globalState.renderedWireframe, guiParams.scale);
-});
+{
+    // by default we hide the GUI and only display it when the model is loaded
+    // GUI is shown after the model is loaded, see loadAndRenderObject()
+    GUI.toggleHide();
+    const objTransformation = gui.addFolder('Object Transformations');
+    objTransformation.add(transformationParams, 'scale', 1, 30).step(0.01).onChange( () => {
+        scaleUpBy(pivot, transformationParams.scale);
+    });
+    objTransformation.add(transformationParams, 'rotation', ROTATIONS).onChange( () => {
+        objPivot.rotation.y = transformationParams.rotation;
+        wireframePivot.rotation.y = transformationParams.rotation;
+    });
+    objTransformation.add(transformationParams, 'transX', -5, 5).step(0.01).onChange( () => {
+        objPivot.position.x = transformationParams.transX;
+        wireframePivot.position.x = transformationParams.transX;
+    });
+    objTransformation.add(transformationParams, 'transY', -5, 5).step(0.01).onChange( () => {
+        objPivot.position.y = transformationParams.transY;
+        wireframePivot.position.y = transformationParams.transY;
+    });
+    objTransformation.add(transformationParams, 'transZ', -5, 5).step(0.01).onChange( () => {
+        objPivot.position.z = transformationParams.transZ;
+        wireframePivot.position.z = transformationParams.transZ;
+    });
+    objTransformation.add(transformationParams, 'transZ', -5, 5).step(0.01).onChange( () => {
+        objPivot.position.z = transformationParams.transZ;
+        wireframePivot.position.z = transformationParams.transZ;
+    });
+    objTransformation.open();
+}
 
-objTransformation.add(guiParams, 'rotation', ROTATIONS).onChange(function () {
-    globalState.renderedObject.rotation.y = guiParams.rotation;
-    globalState.renderedWireframe.rotation.y = guiParams.rotation;
-});
 
 // Axes Helper
 const axesHelper = new THREE.AxesHelper(10);
 scene.add(axesHelper);
+
+// pivot group for transformations
+// objects usually comes with multiple mesh components, we need to perform transformations for all of them wrt the same origin
+const objPivot = new THREE.Group();
+const wireframePivot = new THREE.Group();
+scene.add(objPivot);
+scene.add(wireframePivot);
 
 // for all the interactions around objects in the scene
 const mouse = new THREE.Vector2();
@@ -209,25 +237,26 @@ dragcontrols.enabled = false;
 function onDocumentMouseMove(event) {
     event.preventDefault();
 
-    // TODO: this won't work with fancier layout
+    // TODO: this won't work with fancier layout (such as with margin left on canvas)
     mouse.x = ((event.clientX - renderer.domElement.offsetLeft) / renderer.domElement.width) * 2 - 1;
     mouse.y = -((event.clientY - renderer.domElement.offsetTop) / renderer.domElement.height) * 2 + 1;
     //     var rect = renderer.domElement.getBoundingClientRect();
     // mouse.x = ( ( event.clientX - rect.left ) / ( rect.width - rect.left ) ) * 2 - 1;
     // mouse.y = - ( ( event.clientY - rect.top ) / ( rect.bottom - rect.top) ) * 2 + 1;
 
-
-    if (globalState.renderedObject != null) {
-        var intersects = raycaster.intersectObject(globalState.renderedObject, true);
-        if (intersects.length > 0) {
-            // TODO: now if click over exsiting joints, we still see the cursor.
-            cursor.visible = true;
-            cursor.position.copy(intersects[0].point);
-
-        } else {
-            cursor.visible = false;
+    if (globalState.renderedObject.length != 0) {
+        for (let idx in globalState.renderedObject) {
+            let intersects = raycaster.intersectObject(globalState.renderedObject[idx], true);
+            if (intersects.length > 0) {
+                // TODO: now if click over exsiting joints, we still see the cursor.
+                cursor.visible = true;
+                cursor.position.copy(intersects[0].point);
+                // greedly break the loop to force the cursor to target the closest surface wrt camera 
+                break;
+            } else {
+                cursor.visible = false;
+            }
         }
-
     }
 }
 
@@ -312,8 +341,7 @@ function renderWireframe(objectGeometry) {
 
     globalState.renderedWireframe = wireframe;
     scene.add(wireframe);
-
-    setToggleObjectById("toggleWireframe", globalState.renderedWireframe);
+    wireframePivot.add(wireframe);
 }
 
 function renderObject(object) {
@@ -323,18 +351,20 @@ function renderObject(object) {
             child.material.side = THREE.DoubleSide;
             const mesh = new THREE.Mesh(child.geometry, child.material);
 
-            globalState.renderedObject = mesh;
+            globalState.renderedObject.push(mesh);
             scene.add(mesh);
+            objPivot.add(mesh);
 
             renderWireframe(child.geometry);
-            setToggleObjectById("toggleShow", globalState.renderedObject);
         }
     });
+    setToggleObjectById("toggleShow", objPivot);
+    setToggleObjectById("toggleWireframe", wireframePivot);
 }
 
 function loadAndRenderObject() {
     // when model is loaded, ignore the rest to avoid duplicated rendered objects
-    if (globalState.renderedObject != null) return;
+    if (globalState.renderedObject.length > 0) return;
 
     // show GUI
     GUI.toggleHide();
@@ -349,6 +379,8 @@ function loadAndRenderObject() {
         renderObject(root);
     });
 
+    objPivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
+    wireframePivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
     // fetch candidate joints from backend
     fetchJointCandidates(model_id);
 }
@@ -434,11 +466,11 @@ document.addEventListener("keypress", function (event) {
     }
 
     if (event.code == 'KeyQ') {
-        globalState.renderedObject.visible = !globalState.renderedObject.visible;
+        objPivot.visible = !objPivot.visible;
     }
 
     if (event.code == 'KeyW') {
-        globalState.renderedWireframe.visible = !globalState.renderedWireframe.visible;
+        wireframePivot.visible = !wireframePivot.visible;
     }
 });
 
