@@ -75,7 +75,10 @@ function setupScene() {
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ canvas });
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('gray');
+scene.background = new THREE.Color('lightgray');
+
+const axesHelper = new THREE.AxesHelper(10);
+scene.add(axesHelper);
 
 // for all the interactions around objects in the scene
 const mouse = new THREE.Vector2();
@@ -208,6 +211,10 @@ document.addEventListener("keypress", function (event) {
     // trigger help modal
     if (event.code == 'KeyH') {
         $("#modalTrigger").click()
+    }
+
+    if (event.code == 'KeyS') {
+        axesHelper.visible = !axesHelper.visible;
     }
 
     // TODO: maybe not a good idea to monitor "Enter"?
