@@ -3,6 +3,7 @@ import { OrbitControls } from '../threejs/examples/jsm/controls/OrbitControls.js
 import { TransformControls } from '../threejs/examples/jsm/controls/TransformControls.js';
 import { DragControls } from '../threejs/examples/jsm/controls/DragControls.js';
 import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
+import { GUI } from '../threejs/examples/jsm/libs/dat.gui.module.js';
 
 
 // You all-in-one fake state manager
@@ -14,11 +15,21 @@ const globalState = {
     renderedWireframe: null,
     scene: null,
 
-    selectedJoint: null
+    selectedJoint: null,
+
+
 }
 
-const CONSTANT = {
-    degree270: 4.71,
+    // for model and wireframe
+let guiParams = {
+        scale: 1,
+        rotation: 0
+    }
+
+const ROTATIONS = {
+    degree90: 1.5708,
+    degree180: 3.14159,
+    degree270: 4.7123,
 }
 
 const CONFIGS = {
@@ -77,6 +88,23 @@ const renderer = new THREE.WebGLRenderer({ canvas });
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('lightgray');
 
+// GUI
+const gui = new GUI( { width: 250 } );
+// by default we hide the GUI and only display it when the model is loaded
+// GUI is shown after the model is loaded, see loadAndRenderObject()
+GUI.toggleHide();
+const objTransformation = gui.addFolder('Object Transformations');
+objTransformation.add( guiParams, 'scale', 1, 30 ).step( 0.01 ).onChange( function () {
+    scaleUpBy(globalState.renderedObject, guiParams.scale);
+    scaleUpBy(globalState.renderedWireframe, guiParams.scale);
+});
+
+objTransformation.add( guiParams, 'rotation', ROTATIONS).onChange( function () {
+    globalState.renderedObject.rotation.y = guiParams.rotation;
+    globalState.renderedWireframe.rotation.y = guiParams.rotation;
+});
+
+// Axes Helper
 const axesHelper = new THREE.AxesHelper(10);
 scene.add(axesHelper);
 
@@ -369,11 +397,6 @@ function renderWireframe(objectGeometry) {
         new THREE.LineBasicMaterial({ color: 0x0A0Aff })
     );
 
-    wireframe.rotation.y = CONSTANT.degree270;
-
-    // TODO: haven't fix this >_<
-    scaleUpBy(wireframe, CONFIGS.scaleFactor);
-
     globalState.renderedWireframe = wireframe;
     scene.add(wireframe);
 
@@ -386,10 +409,6 @@ function renderObject(object) {
             // render object
             child.material.side = THREE.DoubleSide;
             const mesh = new THREE.Mesh(child.geometry, child.material);
-            mesh.rotation.y = CONSTANT.degree270;
-
-            // TODO: haven't fix this >_<
-            scaleUpBy(mesh, CONFIGS.scaleFactor);
 
             globalState.renderedObject = mesh;
             scene.add(mesh);
@@ -403,6 +422,9 @@ function renderObject(object) {
 function loadAndRenderObject() {
     // when model is loaded, ignore the rest to avoid duplicated rendered objects
     if (globalState.renderedObject != null) return;
+    
+    // show GUI
+    GUI.toggleHide();
 
     // create loader and load model by given id from disk
     const objLoader = new OBJLoader2();
