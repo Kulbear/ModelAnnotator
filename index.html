@@ -39,41 +39,41 @@
             </div>
         </div>
         <canvas id="c"></canvas>
-        <div class="container">
+        <div class="container-fluid">
             <div class="row border">
-                <div class="col-4 border">
+                <div class="col-2 border">
                     <br />
-                    <button id="toggleShow" type="button" class="btn btn-primary button-fill-hori">
+                    <button id="toggleShow" type="button" class="btn btn-primary fill-hori">
                     Toggle Model (Q)
                     </button>
-                    <button id="toggleWireframe" type="button" class="btn btn-primary button-fill-hori">
+                    <button id="toggleWireframe" type="button" class="btn btn-primary fill-hori">
                     Toggle Wireframe (W)
                     </button>
-                    <button id="toggleJoints" type="button" class="btn btn-primary button-fill-hori">
+                    <button id="toggleJoints" type="button" class="btn btn-primary fill-hori">
                     Toggle Candidate Joints
                     </button>
-                    <button id="modalTrigger" type="button" class="btn btn-success button-fill-hori" data-toggle="modal" data-target="#helpModal">
+                    <button id="modalTrigger" type="button" class="btn btn-success fill-hori" data-toggle="modal" data-target="#helpModal">
                     Help (H)
                     </button>
                 </div>
-                <div class="col-4 border">
+                <div class="col-2 border">
                     <br />
                     <p>Model Type: <b id='modelType'></b> </p>
                     <form>
                         <div class="form-group">
                             <label for=modelIdInput>Model ID:</label>
-                            <input type="text" id="modelIdInput" class=""/>
+                            <input type="text" id="modelIdInput" class="fill-hori"/>
                         </div>
-                        <button type="submit" class="btn btn-info button-fill-hori" id="loadModel">Load Model</button>
-                        <button id="saveAnnotation" type="button" class="btn btn-info button-fill-hori">
+                        <button type="submit" class="btn btn-info fill-hori" id="loadModel">Load Model</button>
+                        <button id="saveAnnotation" type="button" class="btn btn-info fill-hori">
                             Save Annotation
                         </button>
                     </form>
                 </div>
-                <div class="col-4 border">
+                <div class="col-8 border">
                     <br />
                     <form>
-                        <label for=modelIdInput>Joint Properties Panel (TODO)</label>
+                        <label for=modelIdInput>Selected Joint Properties</label>
                         <br />
                         <div class="form-group">
                             <label for=jointX>X:</label>
@@ -85,7 +85,7 @@
                         </div>
                         <div class="form-group">
                             <label for="jointCategorySelect">Joint Category</label>
-                            <select class="form-control" id="jointCategorySelect">
+                            <select class="form-control coord_input" id="jointCategorySelect">
                                 <option>Back</option>
                                 <option>Surface</option>
                                 <option>Leg</option>

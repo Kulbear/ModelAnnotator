@@ -16,8 +16,6 @@ const globalState = {
     scene: null,
 
     selectedJoint: null,
-
-
 }
 
 // for model and wireframe
@@ -44,8 +42,9 @@ const CONFIGS = {
 }
 
 const COLOR = {
-    SELECTED_BALL: '#AAAA00',
-    UNSELECTED_BALL: '#AA33FF'
+    SELECTED_JOINT: '#AAAA00',
+    UNSELECTED_JOINT: '#AA33FF',
+    ANNOTATED_JOINT: '#C02121'
 }
 
 const scaleUpBy = (obj, scaleFactor) => {
@@ -98,26 +97,23 @@ const gui = new GUI({ width: 250 });
     // GUI is shown after the model is loaded, see loadAndRenderObject()
     GUI.toggleHide();
     const objTransformation = gui.addFolder('Object Transformations');
-    objTransformation.add(transformationParams, 'scale', 1, 30).step(0.01).onChange( () => {
-        scaleUpBy(pivot, transformationParams.scale);
+    objTransformation.add(transformationParams, 'scale', 1, 30).step(0.01).onChange(() => {
+        scaleUpBy(objPivot, transformationParams.scale);
+        scaleUpBy(wireframePivot, transformationParams.scale);
     });
-    objTransformation.add(transformationParams, 'rotation', ROTATIONS).onChange( () => {
+    objTransformation.add(transformationParams, 'rotation', ROTATIONS).onChange(() => {
         objPivot.rotation.y = transformationParams.rotation;
         wireframePivot.rotation.y = transformationParams.rotation;
     });
-    objTransformation.add(transformationParams, 'transX', -5, 5).step(0.01).onChange( () => {
+    objTransformation.add(transformationParams, 'transX', -5, 5).step(0.01).onChange(() => {
         objPivot.position.x = transformationParams.transX;
         wireframePivot.position.x = transformationParams.transX;
     });
-    objTransformation.add(transformationParams, 'transY', -5, 5).step(0.01).onChange( () => {
+    objTransformation.add(transformationParams, 'transY', -5, 5).step(0.01).onChange(() => {
         objPivot.position.y = transformationParams.transY;
         wireframePivot.position.y = transformationParams.transY;
     });
-    objTransformation.add(transformationParams, 'transZ', -5, 5).step(0.01).onChange( () => {
-        objPivot.position.z = transformationParams.transZ;
-        wireframePivot.position.z = transformationParams.transZ;
-    });
-    objTransformation.add(transformationParams, 'transZ', -5, 5).step(0.01).onChange( () => {
+    objTransformation.add(transformationParams, 'transZ', -5, 5).step(0.01).onChange(() => {
         objPivot.position.z = transformationParams.transZ;
         wireframePivot.position.z = transformationParams.transZ;
     });
@@ -282,6 +278,7 @@ function render() {
 
     renderer.render(scene, camera);
     requestAnimationFrame(render);
+    updateJointToForm(globalState.selectedJoint);
 }
 
 
@@ -310,11 +307,12 @@ function fetchJointCandidates(model_id) {
 function createOneJoint(location) {
     const jointBall = new THREE.Mesh(
         new THREE.SphereGeometry(...globalState.jointSephereConfig),
-        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_BALL })
+        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_JOINT })
     );
     // TODO: load from local fsys
     jointBall.position.set(...location);
     jointBall.selected = false;
+    jointBall.annotated = false;
     return jointBall
 }
 
@@ -391,6 +389,28 @@ setupScene();
 // loadAndRenderObject();
 requestAnimationFrame(render);
 
+function saveAnnotation() {
+    //TODO: remember to save transformations
+}
+
+function updateJointToForm(joint) {
+    if (joint != null) {
+        const x = joint.position.x;
+        const y = joint.position.y;
+        const z = joint.position.z;
+        $('#jointX')[0].value = x;
+        $('#jointY')[0].value = y;
+        $('#jointZ')[0].value = z;
+    }
+}
+
+
+$('#jointCategorySelect').change(() => {
+    if (globalState.selectedJoint != null) {
+        globalState.selectedJoint.annotated = true;
+        globalState.selectedJoint.typeAnnotation = $('#jointCategorySelect')[0].value;
+    }
+})
 
 // for toggle select status for balls
 function onDocumentMouseClick(event) {
@@ -404,19 +424,20 @@ function onDocumentMouseClick(event) {
 
             // reset previously selected joint
             if (globalState.selectedJoint != null) {
-                globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
+                globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_JOINT);
                 globalState.selectedJoint.selected = false;
                 globalState.selectedJoint = null;
             }
 
             // select current joint and update
             globalState.selectedJoint = intersect.object;
-            globalState.selectedJoint.material.color.set(COLOR.SELECTED_BALL);
+            globalState.selectedJoint.material.color.set(COLOR.SELECTED_JOINT);
             globalState.selectedJoint.selected = true;
-            // TODO: load current joint info
+            updateJointToForm(globalState.selectedJoint);
+
         } else {
             // this way we ignore unselect operation when adjust the camera AND not hover on any objects
-            globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
+            globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_JOINT);
             globalState.selectedJoint.selected = false;
             globalState.selectedJoint = null;
         }

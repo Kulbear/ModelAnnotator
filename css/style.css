@@ -2,6 +2,7 @@ html,
 body {
     margin: 0;
     height: 100%;
+    min-width: 1080px;
 }
 #c {
     width: 100%;
@@ -16,7 +17,7 @@ body {
     width: 70%;
 }
 
-.button-fill-hori {
+.fill-hori {
     width: 100%;
     margin-top: 0.1em;
 }
@@ -25,10 +26,10 @@ form {
     margin-bottom: 2em;
 }
 
-.container {
+.container-fluid {
     margin-top: 1em;
 }
 
 .coord_input {
-    width: 3em;
+    width: 10em;
 }
