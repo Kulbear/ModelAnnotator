@@ -28,3 +28,7 @@ form {
 .container {
     margin-top: 1em;
 }
+
+.coord_input {
+    width: 3em;
+}
