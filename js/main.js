@@ -20,11 +20,11 @@ const globalState = {
 
 }
 
-    // for model and wireframe
+// for model and wireframe
 let guiParams = {
-        scale: 1,
-        rotation: 0
-    }
+    scale: 1,
+    rotation: 0
+}
 
 const ROTATIONS = {
     degree90: 1.5708,
@@ -89,17 +89,17 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('lightgray');
 
 // GUI
-const gui = new GUI( { width: 250 } );
+const gui = new GUI({ width: 250 });
 // by default we hide the GUI and only display it when the model is loaded
 // GUI is shown after the model is loaded, see loadAndRenderObject()
 GUI.toggleHide();
 const objTransformation = gui.addFolder('Object Transformations');
-objTransformation.add( guiParams, 'scale', 1, 30 ).step( 0.01 ).onChange( function () {
+objTransformation.add(guiParams, 'scale', 1, 30).step(0.01).onChange(function () {
     scaleUpBy(globalState.renderedObject, guiParams.scale);
     scaleUpBy(globalState.renderedWireframe, guiParams.scale);
 });
 
-objTransformation.add( guiParams, 'rotation', ROTATIONS).onChange( function () {
+objTransformation.add(guiParams, 'rotation', ROTATIONS).onChange(function () {
     globalState.renderedObject.rotation.y = guiParams.rotation;
     globalState.renderedWireframe.rotation.y = guiParams.rotation;
 });
@@ -206,10 +206,6 @@ dragcontrols.enabled = false;
 
 }
 
-
-document.addEventListener('click', onDocumentMouseClick, false);
-document.addEventListener('mousemove', onDocumentMouseMove, false);
-
 function onDocumentMouseMove(event) {
     event.preventDefault();
 
@@ -235,89 +231,6 @@ function onDocumentMouseMove(event) {
     }
 }
 
-document.addEventListener("keypress", function (event) {
-    // trigger help modal
-    if (event.code == 'KeyH') {
-        $("#modalTrigger").click()
-    }
-
-    if (event.code == 'KeyS') {
-        axesHelper.visible = !axesHelper.visible;
-    }
-
-    // TODO: maybe not a good idea to monitor "Enter"?
-    if (event.code == 'KeyA') {
-        if (cursor.visible) {
-            const jointBall = createOneJoint([cursor.position.x, cursor.position.y, cursor.position.z]);
-            scene.add(jointBall);
-
-            // for later control purpose, order not matters
-            globalState.renderedJoints.push(jointBall);
-        }
-    }
-
-    if (event.code == 'KeyD') {
-        raycaster.setFromCamera(mouse, camera);
-        let intersects = raycaster.intersectObjects(globalState.renderedJoints);
-        if (intersects.length > 0) {
-            let intersect = intersects[0];
-            if (globalState.renderedJoints.includes(intersect.object)) {
-                globalState.renderedJoints = globalState.renderedJoints.filter((e) => {
-                    console.log(e.uuid == intersect.object.uuid);
-                    return e.uuid !== intersect.object.uuid;
-                })
-
-                // must detach to avoid the following error
-                // TransformControls: The attached 3D object must be a part of the scene graph.
-                transformControl.detach(intersect.object);
-                scene.remove(intersect.object);
-            }
-        }
-    }
-
-    if (event.code == 'KeyQ') {
-        globalState.renderedObject.visible = !globalState.renderedObject.visible;
-    }
-
-    if (event.code == 'KeyW') {
-        globalState.renderedWireframe.visible = !globalState.renderedWireframe.visible;
-    }
-});
-
-
-
-// for toggle select status for balls
-function onDocumentMouseClick(event) {
-    event.preventDefault();
-    raycaster.setFromCamera(mouse, camera);
-    let intersects = raycaster.intersectObjects(globalState.renderedJoints);
-    if (intersects.length > 0) {
-        let intersect = intersects[0];
-
-        if (globalState.renderedJoints.includes(intersect.object)) {
-
-            // reset previously selected joint
-            if (globalState.selectedJoint != null) {
-                globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
-                globalState.selectedJoint.selected = false;
-                globalState.selectedJoint = null;
-            }
-
-            // select current joint and update
-            globalState.selectedJoint = intersect.object;
-            globalState.selectedJoint.material.color.set(COLOR.SELECTED_BALL);
-            globalState.selectedJoint.selected = true;
-            // TODO: load current joint info
-        } else {
-            // this way we ignore unselect operation when adjust the camera AND not hover on any objects
-            globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
-            globalState.selectedJoint.selected = false;
-            globalState.selectedJoint = null;
-        }
-    }
-
-
-}
 
 // adaptive resize canvas display and rendering
 function resizeRendererToDisplaySize(renderer) {
@@ -422,7 +335,7 @@ function renderObject(object) {
 function loadAndRenderObject() {
     // when model is loaded, ignore the rest to avoid duplicated rendered objects
     if (globalState.renderedObject != null) return;
-    
+
     // show GUI
     GUI.toggleHide();
 
@@ -441,16 +354,102 @@ function loadAndRenderObject() {
 }
 
 
+setupScene();
+// leave this line here for easy debugging
+// loadAndRenderObject();
+requestAnimationFrame(render);
+
+
+// for toggle select status for balls
+function onDocumentMouseClick(event) {
+    event.preventDefault();
+    raycaster.setFromCamera(mouse, camera);
+    let intersects = raycaster.intersectObjects(globalState.renderedJoints);
+    if (intersects.length > 0) {
+        let intersect = intersects[0];
+
+        if (globalState.renderedJoints.includes(intersect.object)) {
+
+            // reset previously selected joint
+            if (globalState.selectedJoint != null) {
+                globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
+                globalState.selectedJoint.selected = false;
+                globalState.selectedJoint = null;
+            }
+
+            // select current joint and update
+            globalState.selectedJoint = intersect.object;
+            globalState.selectedJoint.material.color.set(COLOR.SELECTED_BALL);
+            globalState.selectedJoint.selected = true;
+            // TODO: load current joint info
+        } else {
+            // this way we ignore unselect operation when adjust the camera AND not hover on any objects
+            globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
+            globalState.selectedJoint.selected = false;
+            globalState.selectedJoint = null;
+        }
+    }
+
+
+}
+
+document.addEventListener("keypress", function (event) {
+    // trigger help modal
+    if (event.code == 'KeyH') {
+        $("#modalTrigger").click()
+    }
+
+    if (event.code == 'KeyS') {
+        axesHelper.visible = !axesHelper.visible;
+    }
+
+    // TODO: maybe not a good idea to monitor "Enter"?
+    if (event.code == 'KeyA') {
+        if (cursor.visible) {
+            const jointBall = createOneJoint([cursor.position.x, cursor.position.y, cursor.position.z]);
+            scene.add(jointBall);
+
+            // for later control purpose, order not matters
+            globalState.renderedJoints.push(jointBall);
+        }
+    }
+
+    if (event.code == 'KeyD') {
+        raycaster.setFromCamera(mouse, camera);
+        let intersects = raycaster.intersectObjects(globalState.renderedJoints);
+        if (intersects.length > 0) {
+            let intersect = intersects[0];
+            if (globalState.renderedJoints.includes(intersect.object)) {
+                globalState.renderedJoints = globalState.renderedJoints.filter((e) => {
+                    console.log(e.uuid == intersect.object.uuid);
+                    return e.uuid !== intersect.object.uuid;
+                })
+
+                // must detach to avoid the following error
+                // TransformControls: The attached 3D object must be a part of the scene graph.
+                transformControl.detach(intersect.object);
+                scene.remove(intersect.object);
+            }
+        }
+    }
+
+    if (event.code == 'KeyQ') {
+        globalState.renderedObject.visible = !globalState.renderedObject.visible;
+    }
+
+    if (event.code == 'KeyW') {
+        globalState.renderedWireframe.visible = !globalState.renderedWireframe.visible;
+    }
+});
+
+document.addEventListener('click', onDocumentMouseClick, false);
+document.addEventListener('mousemove', onDocumentMouseMove, false);
+
 document.getElementById('loadModel').addEventListener("click", (e) => {
     e.preventDefault();
     loadAndRenderObject();
 });
 
-
-setupScene();
-// leave this line here for easy debugging
-// loadAndRenderObject();
-requestAnimationFrame(render);
 
 // for debugging
 window.globalState = globalState;
