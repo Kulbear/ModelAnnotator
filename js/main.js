@@ -256,11 +256,6 @@ function onDocumentMouseClick(event) {
     event.preventDefault();
     raycaster.setFromCamera(mouse, camera);
     let intersects = raycaster.intersectObjects(globalState.renderedJoints);
-    if (intersects.length == 0) {
-        globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
-        globalState.selectedJoint.selected = false;
-        globalState.selectedJoint = null;
-    }
     if (intersects.length > 0) {
         let intersect = intersects[0];
 
@@ -278,6 +273,11 @@ function onDocumentMouseClick(event) {
             globalState.selectedJoint.material.color.set(COLOR.SELECTED_BALL);
             globalState.selectedJoint.selected = true;
             // TODO: load current joint info
+        } else {
+            // this way we ignore unselect operation when adjust the camera AND not hover on any objects
+            globalState.selectedJoint.material.color.set(COLOR.UNSELECTED_BALL);
+            globalState.selectedJoint.selected = false;
+            globalState.selectedJoint = null;
         }
     }
 
