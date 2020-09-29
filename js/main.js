@@ -20,7 +20,7 @@ const globalState = {
 
 // for model and wireframe
 let transformationParams = {
-    scale: 15,
+    scale: 10,
     rotation: 0,
     transX: 0,
     transY: 0,
@@ -105,15 +105,15 @@ const gui = new GUI({ width: 250 });
         objPivot.rotation.y = transformationParams.rotation;
         wireframePivot.rotation.y = transformationParams.rotation;
     });
-    objTransformation.add(transformationParams, 'transX', -5, 5).step(0.01).onChange(() => {
+    objTransformation.add(transformationParams, 'transX', -10, 10).step(0.01).onChange(() => {
         objPivot.position.x = transformationParams.transX;
         wireframePivot.position.x = transformationParams.transX;
     });
-    objTransformation.add(transformationParams, 'transY', -5, 5).step(0.01).onChange(() => {
+    objTransformation.add(transformationParams, 'transY', -10, 10).step(0.01).onChange(() => {
         objPivot.position.y = transformationParams.transY;
         wireframePivot.position.y = transformationParams.transY;
     });
-    objTransformation.add(transformationParams, 'transZ', -5, 5).step(0.01).onChange(() => {
+    objTransformation.add(transformationParams, 'transZ', -10, 10).step(0.01).onChange(() => {
         objPivot.position.z = transformationParams.transZ;
         wireframePivot.position.z = transformationParams.transZ;
     });
