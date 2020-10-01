@@ -14,6 +14,7 @@ const globalState = {
     renderedObject: [],
     renderedWireframe: [],
     scene: null,
+    modelId: null,
 
     selectedJoint: null,
 }
@@ -283,24 +284,52 @@ function render() {
 
 
 // joint candidates fetching and rendering
-function fetchJointCandidates(model_id) {
-    fetch(`http://127.0.0.1:5000/api/v0.1/candidate_joints/${model_id}`, { method: 'get' })
-        .then(response => {
-            if (response.ok) {
-                response.json().then(json => {
-                    let joint_locations = json['joints'];
-                    joint_locations = joint_locations.map((e) => {
-                        let arr = [e[0] * 10, e[1] * 10, e[2] * 10];
-                        return arr;
-                    })
+function fetchJointCandidates(modelId) {
+    fetch(`http://127.0.0.1:5000/api/v0.1/candidate_joints/${modelId}`, {
+        method: 'get'
+    }).then(response => {
+        if (response.ok) {
+            response.json().then(json => {
+                let joint_locations = json['joints'];
+                joint_locations = joint_locations.map((e) => {
+                    let arr = [e[0] * 10, e[1] * 10, e[2] * 10];
+                    return arr;
+                })
 
-                    let model_cat = json['model_cat'];
-                    $('#modelType').text(model_cat);
+                let model_cat = json['model_cat'];
+                $('#modelType').text(model_cat);
 
-                    renderJointCandidates(joint_locations);
-                });
-            }
-        })
+                renderJointCandidates(joint_locations);
+            });
+        }
+    })
+}
+
+// joint candidates fetching and rendering
+function saveJointCandidates() {
+
+    const modelId = globalState.modelId;
+    const data = {
+        modelId: modelId,
+        modelType: $('#modelType').text(),
+        joints: null // add joint meta data here
+    };
+
+
+    data.joints = globalState.renderedJoints.map((item) => {
+        let e = item.position
+        const joint = {
+            position: [e.x / 10, e.y / 10, e.z / 10],
+            category: item.typeAnnotation
+        }
+        return joint;
+    });
+
+
+    fetch(`http://127.0.0.1:5000/api/v0.1/save_joints/${modelId}`, {
+        method: 'post',
+        body: JSON.stringify(data)
+    })
 }
 
 
@@ -370,18 +399,19 @@ function loadAndRenderObject() {
 
     // create loader and load model by given id from disk
     const objLoader = new OBJLoader2();
-    const model_id = document.getElementById("modelIdInput").value;
+    const modelId = document.getElementById("modelIdInput").value;
 
-    const path = `models/${model_id}/objs/source.obj`;
+    const path = `models/${modelId}/objs/source.obj`;
     // note here we render BOTH the object and the wireframe due to the hierachical model object structure
     objLoader.load(path, (root) => {
         renderObject(root);
     });
 
+    globalState.modelId = modelId;
     objPivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
     wireframePivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
     // fetch candidate joints from backend
-    fetchJointCandidates(model_id);
+    fetchJointCandidates(modelId);
 }
 
 
@@ -390,17 +420,6 @@ setupScene();
 // loadAndRenderObject();
 requestAnimationFrame(render);
 
-function saveAnnotation() {
-    // TODO: save joint info and transformations
-    console.log(transformationParams);
-
-    const joints = globalState.renderedJoints;
-    for (let idx in joints) {
-        let joint = joints[idx];
-        if (joint.annotated == false) console.log(joint, 'is not annotated with joint type!');
-        else console.log(joint, joint.typeAnnotation);
-    }
-}
 
 function updateJointToForm(joint) {
     if (joint != null) {
@@ -515,7 +534,7 @@ document.getElementById('loadModel').addEventListener("click", (e) => {
 
 document.getElementById('saveAnnotation').addEventListener("click", (e) => {
     e.preventDefault();
-    saveAnnotation();
+    saveJointCandidates();
 });
 
 
