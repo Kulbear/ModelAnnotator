@@ -11,26 +11,34 @@ MODEL_FILE_PATH = '../models'
 
 @app.route('/')
 def index():
-    return "Hello, World!"
+    return "Hello, welcome to Model Annotator backend API!"
 
 
 @app.route('/api/v0.1/candidate_joints/<int:model_id>')
 def get_candidate_joints(model_id):
-        fpath = f'{MODEL_FILE_PATH}/{model_id}'
 
-        fname_label = fpath + '/point_sample/label-10000.txt'
-        fname_verts = fpath + '/point_sample/pts-10000.txt'
+        # we only load candidate joints from partnet data
+        try:
+            fpath = f'{MODEL_FILE_PATH}/{model_id}'
 
-        with open(fpath + '/meta.json') as f:
-            data = json.load(f)
+            fname_label = fpath + '/point_sample/label-10000.txt'
+            fname_verts = fpath + '/point_sample/pts-10000.txt'
 
-        array = part_joints(fname_label, fname_verts, save_name='test2')
-        return jsonify({
-            'joints': array.tolist(),
-            'model_cat': data['model_cat']
-        })
+            with open(fpath + '/meta.json') as f:
+                data = json.load(f)
 
-@app.route('/api/v0.1/save_joints/<int:model_id>', methods=['POST'])
+            array = part_joints(fname_label, fname_verts, save_name='test2')
+            return jsonify({
+                'joints': array.tolist(),
+                'model_cat': data['model_cat']
+            })
+        except Exception as e:
+            return jsonify({
+                'joints': [],
+                'model_cat': 'Unknown'
+            })
+
+@app.route('/api/v0.1/save_joints/<model_id>', methods=['POST'])
 def save_candidate_joints(model_id):
         data = request.data.decode('utf-8')
         with open(f'../{model_id}.json', 'w') as f:
