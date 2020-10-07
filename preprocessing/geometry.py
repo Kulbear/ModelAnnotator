@@ -134,13 +134,13 @@ def export_pts_with_normal(out, v, n):
 
 def export_ply(out, v):
     with open(out, 'w') as fout:
-        fout.write('ply\n');
-        fout.write('format ascii 1.0\n');
-        fout.write('element vertex ' + str(v.shape[0]) + '\n');
-        fout.write('property float x\n');
-        fout.write('property float y\n');
-        fout.write('property float z\n');
-        fout.write('end_header\n');
+        fout.write('ply\n')
+        fout.write('format ascii 1.0\n')
+        fout.write('element vertex ' + str(v.shape[0]) + '\n')
+        fout.write('property float x\n')
+        fout.write('property float y\n')
+        fout.write('property float z\n')
+        fout.write('end_header\n')
 
         for i in range(v.shape[0]):
             fout.write('%f %f %f\n' % (v[i, 0], v[i, 1], v[i, 2]))
@@ -149,16 +149,16 @@ def export_ply(out, v):
 def export_ply_with_label(out, v, l):
     num_colors = len(colors)
     with open(out, 'w') as fout:
-        fout.write('ply\n');
-        fout.write('format ascii 1.0\n');
-        fout.write('element vertex ' + str(v.shape[0]) + '\n');
-        fout.write('property float x\n');
-        fout.write('property float y\n');
-        fout.write('property float z\n');
-        fout.write('property uchar red\n');
-        fout.write('property uchar green\n');
-        fout.write('property uchar blue\n');
-        fout.write('end_header\n');
+        fout.write('ply\n')
+        fout.write('format ascii 1.0\n')
+        fout.write('element vertex ' + str(v.shape[0]) + '\n')
+        fout.write('property float x\n')
+        fout.write('property float y\n')
+        fout.write('property float z\n')
+        fout.write('property uchar red\n')
+        fout.write('property uchar green\n')
+        fout.write('property uchar blue\n')
+        fout.write('end_header\n')
 
         for i in range(v.shape[0]):
             cur_color = colors[l[i] % num_colors]
@@ -171,16 +171,16 @@ def export_ply_with_normal(out, v, n):
     assert v.shape[0] == n.shape[0], 'v.shape[0] != v.shape[0]'
 
     with open(out, 'w') as fout:
-        fout.write('ply\n');
-        fout.write('format ascii 1.0\n');
-        fout.write('element vertex ' + str(v.shape[0]) + '\n');
-        fout.write('property float x\n');
-        fout.write('property float y\n');
-        fout.write('property float z\n');
-        fout.write('property float nx\n');
-        fout.write('property float ny\n');
-        fout.write('property float nz\n');
-        fout.write('end_header\n');
+        fout.write('ply\n')
+        fout.write('format ascii 1.0\n')
+        fout.write('element vertex ' + str(v.shape[0]) + '\n')
+        fout.write('property float x\n')
+        fout.write('property float y\n')
+        fout.write('property float z\n')
+        fout.write('property float nx\n')
+        fout.write('property float ny\n')
+        fout.write('property float nz\n')
+        fout.write('end_header\n')
 
         for i in range(v.shape[0]):
             fout.write('%f %f %f %f %f %f\n' % (v[i, 0], v[i, 1], v[i, 2], n[i, 0], n[i, 1], n[i, 2]))
@@ -298,9 +298,9 @@ def detect_connected_component(vertices, faces, face_labels=None):
 
         face_id_list.append([key1, key2, key3])
 
-    face_used = np.zeros((num_faces), dtype=np.bool);
-    face_seg_id = np.zeros((num_faces), dtype=np.int32);
-    cur_id = 0;
+    face_used = np.zeros((num_faces), dtype=np.bool)
+    face_seg_id = np.zeros((num_faces), dtype=np.int32)
+    cur_id = 0
 
     new_part = False
     for i in range(num_faces):
