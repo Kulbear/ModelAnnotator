@@ -12,7 +12,7 @@ from sklearn.neighbors import NearestNeighbors, KDTree
 def knnsearch(target, source, metrics='euclidean', k_size=1, leaf_sizes=30):
     # make sure they have the same size
     if not (target.shape[1] == source.shape[1]):
-        raise ('Two Inputs are not same size or They need to be [N(size), D(dimension)] input')
+        raise ('Two Inputs are not same size or they need to be [N(size), D(dimension)] input')
     kdt_build = KDTree(target, leaf_size=leaf_sizes, metric=metrics)
     distances, indices = kdt_build.query(source, k=k_size)
     averagedist = np.sum(distances) / (source.shape[0])  # assume shape [N,D]
