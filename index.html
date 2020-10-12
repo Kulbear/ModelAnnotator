@@ -1,104 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>WebGL Model Annotator</title>
-        <meta charset="utf-8" />
-        <meta
+<head>
+    <title>WebGL Model Annotator</title>
+    <meta charset="utf-8"/>
+    <meta
             name="viewport"
             content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
-            />
-        <link type="text/css" rel="stylesheet" href="css/bootstrap.min.css">
-        <link type="text/css" rel="stylesheet" href="css/style.css" />
-    </head>
-    <body>
-        <!-- Modal -->
-        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="helpModalLabel">Help</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    />
+    <link type="text/css" rel="stylesheet" href="css/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+    <!-- Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">Help</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <ul>
-                            <li>Click a part on the model and <b>press A</b> to add a joint.</li>
-                            <li>Hover on a joint and <b>press D</b> to remove the joint.</li>
-                        </ul>
-                        <h6>After loading the model successfully...</h6>
-                        <ul>
-                            <li>Press <b>Q</b> to toggle the model.</li>
-                            <li>Press <b>W</b> to toggle the wireframe.</li>
-                            <li>Press <b>S</b> to toggle the axes.</li>
-                            <li>To be added...</li>
-                        </ul>
-                        <b>Click anywhere outside, press ESC, or press H again to close this modal!</b>
-                    </div>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        <li>Click a part on the model and <b>press A</b> to add a joint.</li>
+                        <li>Hover on a joint and <b>press D</b> to remove the joint.</li>
+                    </ul>
+                    <h6>After loading the model successfully...</h6>
+                    <ul>
+                        <li>Press <b>Q</b> to toggle the model.</li>
+                        <li>Press <b>W</b> to toggle the wireframe.</li>
+                        <li>Press <b>S</b> to toggle the axes.</li>
+                        <li>To be added...</li>
+                    </ul>
+                    <b>Click anywhere outside, press ESC, or press H again to close this modal!</b>
                 </div>
             </div>
         </div>
-        <canvas id="c"></canvas>
-        <div class="container-fluid">
-            <div class="row border">
-                <div class="col-3 border">
-                    <br />
-                    <button id="toggleShow" type="button" class="btn btn-primary fill-hori">
+    </div>
+    <!-- Canvas for object rendering and annotation related interactions -->
+    <canvas id="c"></canvas>
+    <!-- Tool panel -->
+    <div class="container-fluid">
+        <div class="row border">
+            <!-- Toggle buttons -->
+            <div class="col-3 border">
+                <br/>
+                <button id="toggleShow" type="button" class="btn btn-primary fill-hori">
                     Toggle Model (Q)
-                    </button>
-                    <button id="toggleWireframe" type="button" class="btn btn-primary fill-hori">
+                </button>
+                <button id="toggleWireframe" type="button" class="btn btn-primary fill-hori">
                     Toggle Wireframe (W)
-                    </button>
-                    <button id="toggleJoints" type="button" class="btn btn-primary fill-hori">
+                </button>
+                <button id="toggleJoints" type="button" class="btn btn-primary fill-hori">
                     Toggle Candidate Joints
-                    </button>
-                    <button id="modalTrigger" type="button" class="btn btn-success fill-hori" data-toggle="modal" data-target="#helpModal">
+                </button>
+                <button id="modalTrigger" type="button" class="btn btn-success fill-hori" data-toggle="modal"
+                        data-target="#helpModal">
                     Help (H)
+                </button>
+            </div>
+            <!-- Loading buttons -->
+            <div class="col-3 border">
+                <br/>
+                <p>Model Type: <b id='modelType'></b></p>
+                <form>
+                    <div class="form-group">
+                        <label for=modelIdInput>Model ID:</label>
+                        <input type="text" id="modelIdInput" class="fill-hori"/>
+                    </div>
+                    <button type="submit" class="btn btn-info fill-hori" id="loadModel">Load Model</button>
+                    <button id="saveAnnotation" type="button" class="btn btn-info fill-hori">
+                        Save Annotation
                     </button>
-                </div>
-                <div class="col-3 border">
-                    <br />
-                    <p>Model Type: <b id='modelType'></b> </p>
-                    <form>
-                        <div class="form-group">
-                            <label for=modelIdInput>Model ID:</label>
-                            <input type="text" id="modelIdInput" class="fill-hori"/>
-                        </div>
-                        <button type="submit" class="btn btn-info fill-hori" id="loadModel">Load Model</button>
-                        <button id="saveAnnotation" type="button" class="btn btn-info fill-hori">
-                            Save Annotation
-                        </button>
-                    </form>
-                </div>
-                <div class="col-6 border">
-                    <br />
-                    <form>
-                        <label for=modelIdInput>Selected Joint Properties</label>
-                        <br />
-                        <div class="form-group">
-                            <label for=jointX>X:</label>
-                            <input type="text" id="jointX" class="coord_input" disabled/>
-                            <label for=jointY>Y:</label>
-                            <input type="text" id="jointY" class="coord_input" disabled/>
-                            <label for=jointZ>Z:</label>
-                            <input type="text" id="jointZ" class="coord_input" disabled/>
-                        </div>
-                        <div class="form-group">
-                            <label for="jointCategorySelect">Joint Category</label>
-                            <select class="form-control coord_input" id="jointCategorySelect">
-                                <option>Back</option>
-                                <option>Surface</option>
-                                <option>Leg</option>
-                                <option>Handle</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
+                </form>
+            </div>
+            <!-- Joint property panel -->
+            <div class="col-6 border">
+                <br/>
+                <form>
+                    <label for=modelIdInput>Selected Joint Properties</label>
+                    <br/>
+                    <div class="form-group">
+                        <label for=jointX>X:</label>
+                        <input type="text" id="jointX" class="coord_input" disabled/>
+                        <label for=jointY>Y:</label>
+                        <input type="text" id="jointY" class="coord_input" disabled/>
+                        <label for=jointZ>Z:</label>
+                        <input type="text" id="jointZ" class="coord_input" disabled/>
+                    </div>
+                    <div class="form-group">
+                        <!-- TODO: this should be related to a meta config file? Dynamic load by JS instead! -->
+                        <label for="jointCategorySelect">Joint Category</label>
+                        <select class="form-control coord_input" id="jointCategorySelect">
+                            <option>Back (Chair/Desk)</option>
+                            <option>Surface/Top (Chair/Desk)</option>
+                            <option>Leg (Chair/Desk)</option>
+                            <option>Handle (Chair)</option>
+                            <option>Base (Lamp)</option>
+                            <option>Top (Lamp)</option>
+                            <option>Body (Lamp)</option>
+                        </select>
+                    </div>
+                </form>
             </div>
         </div>
-        <script src="/js/third-party/jquery-3.2.1.slim.min.js"></script>
-        <script src="/js/third-party/popper.min.js"></script>
-        <script src="/js/third-party/bootstrap.min.js"></script>
-        <script type="module" src="/js/main.js"></script>
-    </body>
+    </div>
+    <script src="/js/third-party/jquery-3.2.1.slim.min.js"></script>
+    <script src="/js/third-party/popper.min.js"></script>
+    <script src="/js/third-party/bootstrap.min.js"></script>
+    <script type="module" src="/js/main.js"></script>
+</body>
 </html>
