@@ -1,9 +1,10 @@
 import * as THREE from '../threejs/build/three.module.js';
-import { OrbitControls } from '../threejs/examples/jsm/controls/OrbitControls.js';
-import { TransformControls } from '../threejs/examples/jsm/controls/TransformControls.js';
-import { DragControls } from '../threejs/examples/jsm/controls/DragControls.js';
-import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
-import { GUI } from '../threejs/examples/jsm/libs/dat.gui.module.js';
+import {OrbitControls} from '../threejs/examples/jsm/controls/OrbitControls.js';
+import {TransformControls} from '../threejs/examples/jsm/controls/TransformControls.js';
+import {DragControls} from '../threejs/examples/jsm/controls/DragControls.js';
+import {OBJLoader2} from '../threejs/examples/jsm/loaders/OBJLoader2.js';
+import {PLYLoader} from '../threejs/examples/jsm/loaders/PLYLoader.js';
+import {GUI} from '../threejs/examples/jsm/libs/dat.gui.module.js';
 
 
 // You all-in-one fake state manager
@@ -19,7 +20,7 @@ const globalState = {
     selectedJoint: null,
 }
 
-// for model and wireframe
+// for model and wireframe control panel GUI
 let transformationParams = {
     scale: 10,
     rotation: 0,
@@ -30,12 +31,11 @@ let transformationParams = {
 
 const ROTATIONS = {
     degree90: 1.5708,
-    degree180: 3.14159,
+    degree180: 3.1416,
     degree270: 4.7123,
 }
 
 const CONFIGS = {
-    scaleFactor: 22.5, // for unknown reason either the scale of the object or the joints are not correct, hard-coded workaround only
     lightIntensity: 1,
     cameraParams: [45, 1, 0.1, 100],  // FoV, aspect, near, far
     cameraPosition: [10, 5, 30],
@@ -71,8 +71,6 @@ function setToggleObjectsById(elementDOMId, objects) {
 
 // ===================================== Main Implementation ===================================== //
 
-
-
 function setupScene() {
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
@@ -87,12 +85,12 @@ function setupScene() {
 }
 
 const canvas = document.querySelector('#c');
-const renderer = new THREE.WebGLRenderer({ canvas });
+const renderer = new THREE.WebGLRenderer({canvas});
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('lightgray');
 
 // GUI
-const gui = new GUI({ width: 250 });
+const gui = new GUI({width: 250});
 {
     // by default we hide the GUI and only display it when the model is loaded
     // GUI is shown after the model is loaded, see loadAndRenderObject()
@@ -147,19 +145,18 @@ controls.target.set(0, 0, 0);
 // set up cursor
 const cursor = new THREE.Mesh(
     new THREE.SphereBufferGeometry(0.15),
-    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+    new THREE.MeshBasicMaterial({color: 0xff0000})
 );
 cursor.visible = false;
 scene.add(cursor);
 
-// transform/drag contorol for joints
+// transform/drag control for joints
 const transformControl = new TransformControls(camera, renderer.domElement);
-const dragcontrols = new DragControls(globalState.renderedJoints, camera, renderer.domElement);
-dragcontrols.enabled = false;
+const dragControls = new DragControls(globalState.renderedJoints, camera, renderer.domElement);
+dragControls.enabled = false;
 
+let hiding;
 {
-    let hiding;
-
     transformControl.addEventListener('change', render);
 
     transformControl.addEventListener('dragging-changed', function (event) {
@@ -205,7 +202,7 @@ dragcontrols.enabled = false;
 
             transformControl.detach(transformControl.object);
 
-        }, 200);
+        }, 250);
 
     }
 
@@ -216,14 +213,14 @@ dragcontrols.enabled = false;
     }
 
 
-    dragcontrols.addEventListener('hoveron', function (event) {
+    dragControls.addEventListener('hoveron', function (event) {
 
         transformControl.attach(event.object);
         cancelHideTransform();
 
     });
 
-    dragcontrols.addEventListener('hoveroff', function () {
+    dragControls.addEventListener('hoveroff', function () {
 
         delayHideTransform();
 
@@ -237,11 +234,8 @@ function onDocumentMouseMove(event) {
     // TODO: this won't work with fancier layout (such as with margin left on canvas)
     mouse.x = ((event.clientX - renderer.domElement.offsetLeft) / renderer.domElement.width) * 2 - 1;
     mouse.y = -((event.clientY - renderer.domElement.offsetTop) / renderer.domElement.height) * 2 + 1;
-    //     var rect = renderer.domElement.getBoundingClientRect();
-    // mouse.x = ( ( event.clientX - rect.left ) / ( rect.width - rect.left ) ) * 2 - 1;
-    // mouse.y = - ( ( event.clientY - rect.top ) / ( rect.bottom - rect.top) ) * 2 + 1;
 
-    if (globalState.renderedObject.length != 0) {
+    if (globalState.renderedObject.length !== 0) {
         for (let idx in globalState.renderedObject) {
             let intersects = raycaster.intersectObject(globalState.renderedObject[idx], true);
             if (intersects.length > 0) {
@@ -291,11 +285,11 @@ function fetchJointCandidates(modelId) {
         if (response.ok) {
             response.json().then(json => {
                 let joint_locations = json['joints'];
+                // scale up by a factor of 10 to avoid the loss of precision with float
                 joint_locations = joint_locations.map((e) => {
                     let arr = [e[0] * 10, e[1] * 10, e[2] * 10];
                     return arr;
                 })
-
                 let model_cat = json['model_cat'];
                 $('#modelType').text(model_cat);
 
@@ -336,7 +330,7 @@ function saveJointCandidates() {
 function createOneJoint(location) {
     const jointBall = new THREE.Mesh(
         new THREE.SphereGeometry(...globalState.jointSephereConfig),
-        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_JOINT })
+        new THREE.MeshPhongMaterial({color: COLOR.UNSELECTED_JOINT})
     );
     // TODO: load from local fsys
     jointBall.position.set(...location);
@@ -364,13 +358,29 @@ function renderWireframe(objectGeometry) {
 
     const wireframe = new THREE.LineSegments(
         new THREE.WireframeGeometry(objectGeometry),
-        new THREE.LineBasicMaterial({ color: 0x0A0Aff })
+        new THREE.LineBasicMaterial({color: 0x0A0Aff})
     );
 
     globalState.renderedWireframe = wireframe;
     scene.add(wireframe);
     wireframePivot.add(wireframe);
 }
+
+function renderObjectPLY(object) {
+
+    var material = new THREE.MeshStandardMaterial({color: 0x0055ff, flatShading: true});
+    var mesh = new THREE.Mesh(object, material);
+
+    globalState.renderedObject.push(mesh);
+    scene.add(mesh);
+    objPivot.add(mesh);
+
+    renderWireframe(object);
+
+    setToggleObjectById("toggleShow", objPivot);
+    setToggleObjectById("toggleWireframe", wireframePivot);
+}
+
 
 function renderObject(object) {
     object.traverse(function (child) {
@@ -398,20 +408,34 @@ function loadAndRenderObject() {
     GUI.toggleHide();
 
     // create loader and load model by given id from disk
-    const objLoader = new OBJLoader2();
-    const modelId = document.getElementById("modelIdInput").value;
+    let loader;
+    let renderFunction;
+    let path;
+    let modelId = document.getElementById("modelIdInput").value;
+    let isNumModelId = /^\d+$/.test(modelId);
 
-    const path = `models/${modelId}/objs/source.obj`;
-    // note here we render BOTH the object and the wireframe due to the hierachical model object structure
-    objLoader.load(path, (root) => {
-        renderObject(root);
+    if (isNumModelId) {
+        path = `models/${modelId}/objs/source.obj`;
+    } else {
+        path = `models_ply/${modelId}.ply`
+    }
+    if (path.endsWith('.ply')) {
+        loader = new PLYLoader();
+        renderFunction = renderObjectPLY;
+    } else {
+        loader = new OBJLoader2();
+        // note here we render BOTH the object and the wireframe due to the hierachical model object structure
+        renderFunction = renderObject;
+    }
+    loader.load(path, (root) => {
+        renderFunction(root);
     });
 
     globalState.modelId = modelId;
     objPivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
     wireframePivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
-    // fetch candidate joints from backend
-    fetchJointCandidates(modelId);
+    // fetch candidate joints from backend (only for PartNet data)
+    if (isNumModelId) fetchJointCandidates(modelId);
 }
 
 
@@ -433,7 +457,6 @@ function updateJointToForm(joint) {
         $('#jointCategorySelect')[0].value = typeAnnotation;
     }
 }
-
 
 $('#jointCategorySelect').change(() => {
     if (globalState.selectedJoint != null) {
@@ -472,8 +495,6 @@ function onDocumentMouseClick(event) {
             globalState.selectedJoint = null;
         }
     }
-
-
 }
 
 document.addEventListener("keypress", function (event) {
@@ -498,8 +519,8 @@ document.addEventListener("keypress", function (event) {
     }
 
     if (event.code == 'KeyD') {
-        //TODO: throttle this?
         raycaster.setFromCamera(mouse, camera);
+        //TODO: maybe change to select then delete instead of checking intersects?
         let intersects = raycaster.intersectObjects(globalState.renderedJoints);
         if (intersects.length > 0) {
             let intersect = intersects[0];
@@ -509,6 +530,7 @@ document.addEventListener("keypress", function (event) {
                 // must detach to avoid the following error
                 // TransformControls: The attached 3D object must be a part of the scene graph.
                 transformControl.detach(intersect.object);
+                // dragControls.detach();
                 scene.remove(intersect.object);
             }
         }
