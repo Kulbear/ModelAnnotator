@@ -499,16 +499,16 @@ function onDocumentMouseClick(event) {
 
 document.addEventListener("keypress", function (event) {
     // trigger help modal
-    if (event.code == 'KeyH') {
+    if (event.code === 'KeyH') {
         $("#modalTrigger").click()
     }
 
-    if (event.code == 'KeyS') {
+    if (event.code === 'KeyS') {
         axesHelper.visible = !axesHelper.visible;
     }
 
     // TODO: maybe not a good idea to monitor "Enter"?
-    if (event.code == 'KeyA') {
+    if (event.code === 'KeyA') {
         if (cursor.visible) {
             const jointBall = createOneJoint([cursor.position.x, cursor.position.y, cursor.position.z]);
             scene.add(jointBall);
@@ -518,30 +518,23 @@ document.addEventListener("keypress", function (event) {
         }
     }
 
-    if (event.code == 'KeyD') {
-        raycaster.setFromCamera(mouse, camera);
-        //TODO: maybe change to select then delete instead of checking intersects?
-        let intersects = raycaster.intersectObjects(globalState.renderedJoints);
-        if (intersects.length > 0) {
-            let intersect = intersects[0];
-            if (globalState.renderedJoints.includes(intersect.object)) {
-                globalState.renderedJoints = globalState.renderedJoints.filter((e) => e.uuid !== intersect.object.uuid)
+    if (event.code === 'KeyD') {
+        const selected = globalState.selectedJoint;
+        if (selected) {
+            globalState.renderedJoints = globalState.renderedJoints.filter((e) => e.uuid !== selected.uuid);
 
-                // must detach to avoid the following error
-                // TransformControls: The attached 3D object must be a part of the scene graph.
-                transformControl.detach(intersect.object);
-                // dragControls.detach();
-                scene.remove(intersect.object);
-            }
+            // must detach to avoid the following error
+            // TransformControls: The attached 3D object must be a part of the scene graph.
+            transformControl.detach(selected);
+            scene.remove(selected);
         }
-
     }
 
-    if (event.code == 'KeyQ') {
+    if (event.code === 'KeyQ') {
         objPivot.visible = !objPivot.visible;
     }
 
-    if (event.code == 'KeyW') {
+    if (event.code === 'KeyW') {
         wireframePivot.visible = !wireframePivot.visible;
     }
 });
