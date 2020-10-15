@@ -499,11 +499,11 @@ function onDocumentMouseClick(event) {
 
 document.addEventListener("keypress", function (event) {
     // trigger help modal
-    if (event.code === 'KeyH') {
-        $("#modalTrigger").click()
+    if (event.code === 'NumpadEnter') {
+        $("#modalTrigger").click();
     }
 
-    if (event.code === 'KeyS') {
+    if (event.code === 'NumpadAdd') {
         axesHelper.visible = !axesHelper.visible;
     }
 
