@@ -1,10 +1,22 @@
 import * as THREE from '../threejs/build/three.module.js';
-import {OrbitControls} from '../threejs/examples/jsm/controls/OrbitControls.js';
-import {TransformControls} from '../threejs/examples/jsm/controls/TransformControls.js';
-import {DragControls} from '../threejs/examples/jsm/controls/DragControls.js';
-import {OBJLoader2} from '../threejs/examples/jsm/loaders/OBJLoader2.js';
-import {PLYLoader} from '../threejs/examples/jsm/loaders/PLYLoader.js';
-import {GUI} from '../threejs/examples/jsm/libs/dat.gui.module.js';
+import {
+    OrbitControls
+} from '../threejs/examples/jsm/controls/OrbitControls.js';
+import {
+    TransformControls
+} from '../threejs/examples/jsm/controls/TransformControls.js';
+import {
+    DragControls
+} from '../threejs/examples/jsm/controls/DragControls.js';
+import {
+    OBJLoader2
+} from '../threejs/examples/jsm/loaders/OBJLoader2.js';
+import {
+    PLYLoader
+} from '../threejs/examples/jsm/loaders/PLYLoader.js';
+import {
+    GUI
+} from '../threejs/examples/jsm/libs/dat.gui.module.js';
 
 
 // You all-in-one fake state manager
@@ -311,7 +323,7 @@ function saveJointCandidates() {
 
 
     data.joints = globalState.renderedJoints.map((item) => {
-        let e = item.position
+        let e = item.position;
         const joint = {
             position: [e.x / 10, e.y / 10, e.z / 10],
             category: item.typeAnnotation
@@ -410,15 +422,10 @@ function loadAndRenderObject() {
     // create loader and load model by given id from disk
     let loader;
     let renderFunction;
-    let path;
     let modelId = document.getElementById("modelIdInput").value;
     let isNumModelId = /^\d+$/.test(modelId);
 
-    if (isNumModelId) {
-        path = `models/${modelId}/objs/source.obj`;
-    } else {
-        path = `models_ply/${modelId}.ply`
-    }
+    let path = isNumModelId ? `models/${modelId}/objs/source.obj` : `models_ply/${modelId}.ply`;
     if (path.endsWith('.ply')) {
         loader = new PLYLoader();
         renderFunction = renderObjectPLY;
