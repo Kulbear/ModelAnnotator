@@ -1,22 +1,10 @@
 import * as THREE from '../threejs/build/three.module.js';
-import {
-    OrbitControls
-} from '../threejs/examples/jsm/controls/OrbitControls.js';
-import {
-    TransformControls
-} from '../threejs/examples/jsm/controls/TransformControls.js';
-import {
-    DragControls
-} from '../threejs/examples/jsm/controls/DragControls.js';
-import {
-    OBJLoader2
-} from '../threejs/examples/jsm/loaders/OBJLoader2.js';
-import {
-    PLYLoader
-} from '../threejs/examples/jsm/loaders/PLYLoader.js';
-import {
-    GUI
-} from '../threejs/examples/jsm/libs/dat.gui.module.js';
+import {OrbitControls} from '../threejs/examples/jsm/controls/OrbitControls.js';
+import {TransformControls} from '../threejs/examples/jsm/controls/TransformControls.js';
+import {DragControls} from '../threejs/examples/jsm/controls/DragControls.js';
+import {OBJLoader2} from '../threejs/examples/jsm/loaders/OBJLoader2.js';
+import {PLYLoader} from '../threejs/examples/jsm/loaders/PLYLoader.js';
+import {GUI} from '../threejs/examples/jsm/libs/dat.gui.module.js';
 
 
 // You all-in-one fake state manager
@@ -423,6 +411,7 @@ function loadAndRenderObject() {
     let loader;
     let renderFunction;
     let modelId = document.getElementById("modelIdInput").value;
+    // PartNet models use pure digits for ID
     let isNumModelId = /^\d+$/.test(modelId);
 
     let path = isNumModelId ? `models/${modelId}/objs/source.obj` : `models_ply/${modelId}.ply`;
