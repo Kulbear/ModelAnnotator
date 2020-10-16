@@ -311,7 +311,7 @@ function saveJointCandidates() {
 
 
     data.joints = globalState.renderedJoints.map((item) => {
-        let e = item.position;
+        let e = item.position
         const joint = {
             position: [e.x / 10, e.y / 10, e.z / 10],
             category: item.typeAnnotation
@@ -410,11 +410,16 @@ function loadAndRenderObject() {
     // create loader and load model by given id from disk
     let loader;
     let renderFunction;
+    let path;
     let modelId = document.getElementById("modelIdInput").value;
     // PartNet models use pure digits for ID
     let isNumModelId = /^\d+$/.test(modelId);
 
-    let path = isNumModelId ? `models/${modelId}/objs/source.obj` : `models_ply/${modelId}.ply`;
+    if (isNumModelId) {
+        path = `models/${modelId}/objs/source.obj`;
+    } else {
+        path = `models_ply/${modelId}.ply`
+    }
     if (path.endsWith('.ply')) {
         loader = new PLYLoader();
         renderFunction = renderObjectPLY;
