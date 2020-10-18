@@ -18,6 +18,9 @@ const globalState = {
     modelId: null,
 
     selectedJoint: null,
+    kinematicChains: [],
+    currentChain: [],
+    annotatingChain: false
 }
 
 // for model and wireframe control panel GUI
@@ -314,7 +317,8 @@ function saveJointCandidates() {
         let e = item.position
         const joint = {
             position: [e.x / 10, e.y / 10, e.z / 10],
-            category: item.typeAnnotation
+            category: item.typeAnnotation,
+            index: item.index
         }
         return joint;
     });
@@ -337,6 +341,7 @@ function createOneJoint(location) {
     jointBall.selected = false;
     jointBall.annotated = false;
     jointBall.typeAnnotation = null;
+    jointBall.index = null;
     return jointBall
 }
 
@@ -452,19 +457,33 @@ function updateJointToForm(joint) {
         const y = joint.position.y;
         const z = joint.position.z;
         const typeAnnotation = joint.typeAnnotation;
+        const jointIndex = joint.index;
         $('#jointX')[0].value = x;
         $('#jointY')[0].value = y;
         $('#jointZ')[0].value = z;
         $('#jointCategorySelect')[0].value = typeAnnotation;
+        $('#jointIndex')[0].value = jointIndex;
     }
 }
 
-$('#jointCategorySelect').change(() => {
-    if (globalState.selectedJoint != null) {
-        globalState.selectedJoint.annotated = true;
-        globalState.selectedJoint.typeAnnotation = $('#jointCategorySelect')[0].value;
-    }
-})
+{ // joint annotation form related
+
+    $('#jointCategorySelect').change(() => {
+        if (globalState.selectedJoint != null) {
+            globalState.selectedJoint.annotated = true;
+            globalState.selectedJoint.typeAnnotation = $('#jointCategorySelect')[0].value;
+        }
+        console.log(globalState.selectedJoint);
+    })
+    
+    $('#jointIndex').change(function() {
+        if (globalState.selectedJoint != null) {
+            globalState.selectedJoint.index = $('#jointIndex')[0].value;
+        }
+        console.log(globalState.selectedJoint);
+    })
+}
+
 
 // for toggle select status for balls
 function onDocumentMouseClick(event) {
