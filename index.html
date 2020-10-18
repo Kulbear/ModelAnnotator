@@ -76,23 +76,30 @@
                 </form>
             </div>
             <!-- Joint property panel -->
-            <div class="col-6 border">
+            <div class="col-2 border">
                 <br/>
                 <form>
                     <label for=modelIdInput>Selected Joint Properties</label>
                     <br/>
                     <div class="form-group">
                         <label for=jointX>X:</label>
-                        <input type="text" id="jointX" class="coord_input" disabled/>
+                        <input type="text" id="jointX" class="coord_input" readonly/>
+                        <br/>
                         <label for=jointY>Y:</label>
-                        <input type="text" id="jointY" class="coord_input" disabled/>
+                        <input type="text" id="jointY" class="coord_input" readonly/>
+                        <br/>
                         <label for=jointZ>Z:</label>
-                        <input type="text" id="jointZ" class="coord_input" disabled/>
+                        <input type="text" id="jointZ" class="coord_input" readonly/>
                     </div>
+                </form>
+            </div>
+            <div class="col-4 border">
+                <br/>
+                <form>
                     <div class="form-group">
                         <!-- TODO: this should be related to a meta config file? Dynamic load by JS instead! -->
                         <label for="jointCategorySelect">Joint Category</label>
-                        <select class="form-control coord_input" id="jointCategorySelect">
+                        <select class="form-control" id="jointCategorySelect">
                             <option>Back (Chair/Desk)</option>
                             <option>Surface/Top (Chair/Desk)</option>
                             <option>Leg (Chair/Desk)</option>
@@ -100,6 +107,28 @@
                             <option>Base (Lamp)</option>
                             <option>Top (Lamp)</option>
                             <option>Body (Lamp)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="jointIndex">Joint Index</label>
+                        <select class="form-control" id="jointIndex">
+                            <option>0</option>
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                            <option>7</option>
+                            <option>8</option>
+                            <option>9</option>
+                            <option>10</option>
+                            <option>11</option>
+                            <option>12</option>
+                            <option>13</option>
+                            <option>14</option>
+                            <option>15</option>
+                            <option>16</option>
                         </select>
                     </div>
                 </form>
