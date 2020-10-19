@@ -63,6 +63,7 @@ function setToggleObjectById(elementDOMId, object) {
     });
 }
 
+
 function setToggleObjectsById(elementDOMId, objects) {
     document.getElementById(elementDOMId).addEventListener("click", () => {
         for (let idx in objects) {
@@ -295,6 +296,7 @@ function fetchJointCandidates(modelId) {
                 })
                 let model_cat = json['model_cat'];
                 $('#modelType').text(model_cat);
+                $('#annotatingChainMode').text(globalState.annotatingChain);
 
                 renderJointCandidates(joint_locations);
             });
@@ -565,6 +567,12 @@ document.addEventListener('mousemove', onDocumentMouseMove, false);
 document.getElementById('loadModel').addEventListener("click", (e) => {
     e.preventDefault();
     loadAndRenderObject();
+});
+
+document.getElementById('annotatingChain').addEventListener("click", (e) => {
+    e.preventDefault();
+    globalState.annotatingChain = !globalState.annotatingChain;
+    $('#annotatingChainMode').text(globalState.annotatingChain);
 });
 
 document.getElementById('saveAnnotation').addEventListener("click", (e) => {
