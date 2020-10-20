@@ -1,10 +1,10 @@
 import * as THREE from '../threejs/build/three.module.js';
-import {OrbitControls} from '../threejs/examples/jsm/controls/OrbitControls.js';
-import {TransformControls} from '../threejs/examples/jsm/controls/TransformControls.js';
-import {DragControls} from '../threejs/examples/jsm/controls/DragControls.js';
-import {OBJLoader2} from '../threejs/examples/jsm/loaders/OBJLoader2.js';
-import {PLYLoader} from '../threejs/examples/jsm/loaders/PLYLoader.js';
-import {GUI} from '../threejs/examples/jsm/libs/dat.gui.module.js';
+import { OrbitControls } from '../threejs/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from '../threejs/examples/jsm/controls/TransformControls.js';
+import { DragControls } from '../threejs/examples/jsm/controls/DragControls.js';
+import { OBJLoader2 } from '../threejs/examples/jsm/loaders/OBJLoader2.js';
+import { PLYLoader } from '../threejs/examples/jsm/loaders/PLYLoader.js';
+import { GUI } from '../threejs/examples/jsm/libs/dat.gui.module.js';
 
 
 // You all-in-one fake state manager
@@ -89,12 +89,12 @@ function setupScene() {
 }
 
 const canvas = document.querySelector('#c');
-const renderer = new THREE.WebGLRenderer({canvas});
+const renderer = new THREE.WebGLRenderer({ canvas });
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('lightgray');
 
 // GUI
-const gui = new GUI({width: 250});
+const gui = new GUI({ width: 250 });
 {
     // by default we hide the GUI and only display it when the model is loaded
     // GUI is shown after the model is loaded, see loadAndRenderObject()
@@ -149,7 +149,7 @@ controls.target.set(0, 0, 0);
 // set up cursor
 const cursor = new THREE.Mesh(
     new THREE.SphereBufferGeometry(0.15),
-    new THREE.MeshBasicMaterial({color: 0xff0000})
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
 );
 cursor.visible = false;
 scene.add(cursor);
@@ -336,7 +336,7 @@ function saveJointCandidates() {
 function createOneJoint(location) {
     const jointBall = new THREE.Mesh(
         new THREE.SphereGeometry(...globalState.jointSephereConfig),
-        new THREE.MeshPhongMaterial({color: COLOR.UNSELECTED_JOINT})
+        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_JOINT })
     );
     // TODO: load from local fsys
     jointBall.position.set(...location);
@@ -365,7 +365,7 @@ function renderWireframe(objectGeometry) {
 
     const wireframe = new THREE.LineSegments(
         new THREE.WireframeGeometry(objectGeometry),
-        new THREE.LineBasicMaterial({color: 0x0A0Aff})
+        new THREE.LineBasicMaterial({ color: 0x0A0Aff })
     );
 
     globalState.renderedWireframe = wireframe;
@@ -375,7 +375,7 @@ function renderWireframe(objectGeometry) {
 
 function renderObjectPLY(object) {
 
-    var material = new THREE.MeshStandardMaterial({color: 0x0055ff, flatShading: true});
+    var material = new THREE.MeshStandardMaterial({ color: 0x0055ff, flatShading: true });
     var mesh = new THREE.Mesh(object, material);
 
     globalState.renderedObject.push(mesh);
@@ -477,8 +477,8 @@ function updateJointToForm(joint) {
         }
         console.log(globalState.selectedJoint);
     })
-    
-    $('#jointIndex').change(function() {
+
+    $('#jointIndex').change(function () {
         if (globalState.selectedJoint != null) {
             globalState.selectedJoint.index = $('#jointIndex')[0].value;
         }
@@ -509,6 +509,11 @@ function onDocumentMouseClick(event) {
             globalState.selectedJoint.material.color.set(COLOR.SELECTED_JOINT);
             globalState.selectedJoint.selected = true;
             updateJointToForm(globalState.selectedJoint);
+
+            // chain annotating mode
+            if (globalState.annotatingChain) {
+                globalState.currentChain.push(globalState.selectedJoint);
+            }
 
         } else {
             // this way we ignore unselect operation when adjust the camera AND not hover on any objects
@@ -554,6 +559,14 @@ document.addEventListener("keypress", function (event) {
 
     if (event.code === 'KeyQ') {
         objPivot.visible = !objPivot.visible;
+    }
+
+    if (event.code === 'KeyC') {
+        if (globalState.annotatingChain) {
+            globalState.kinematicChains.push(globalState.currentChain);
+            console.log('Adding chain of length', globalState.currentChain.length);
+            globalState.currentChain = [];
+        }
     }
 
     if (event.code === 'KeyW') {
