@@ -311,7 +311,8 @@ function saveJointCandidates() {
     const data = {
         modelId: modelId,
         modelType: $('#modelType').text(),
-        joints: null // add joint meta data here
+        joints: null, // add joint meta data here
+        chains: globalState.kinematicChains, // process and add chains
     };
 
 
@@ -512,7 +513,7 @@ function onDocumentMouseClick(event) {
 
             // chain annotating mode
             if (globalState.annotatingChain) {
-                globalState.currentChain.push(globalState.selectedJoint);
+                globalState.currentChain.push(globalState.selectedJoint.index);
             }
 
         } else {
@@ -564,7 +565,7 @@ document.addEventListener("keypress", function (event) {
     if (event.code === 'KeyC') {
         if (globalState.annotatingChain) {
             globalState.kinematicChains.push(globalState.currentChain);
-            console.log('Adding chain of length', globalState.currentChain.length);
+            console.log('Adding chain of length', globalState.currentChain.length, globalState.currentChain);
             globalState.currentChain = [];
         }
     }
