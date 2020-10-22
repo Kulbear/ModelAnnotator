@@ -443,8 +443,10 @@ function loadAndRenderObject() {
     globalState.modelId = modelId;
     objPivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
     wireframePivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
+    // TODO: fetch automatically generated joints from server
     // fetch candidate joints from backend (only for PartNet data)
-    if (isNumModelId) fetchJointCandidates(modelId);
+    // if (isNumModelId) fetchJointCandidates(modelId);
+    // return (modelId, isNumModelId) ????
 }
 
 
@@ -581,6 +583,12 @@ document.addEventListener('mousemove', onDocumentMouseMove, false);
 document.getElementById('loadModel').addEventListener("click", (e) => {
     e.preventDefault();
     loadAndRenderObject();
+});
+
+document.getElementById('loadJoints').addEventListener("click", (e) => {
+    e.preventDefault();
+    // TODO: ...
+    console.log('Not implemented for now!');
 });
 
 document.getElementById('annotatingChain').addEventListener("click", (e) => {
