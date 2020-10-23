@@ -20,7 +20,8 @@ const globalState = {
     selectedJoint: null,
     kinematicChains: [],
     currentChain: [],
-    annotatingChain: false
+    annotatingChain: false,
+    renderedChains: []
 }
 
 // for model and wireframe control panel GUI
@@ -515,7 +516,7 @@ function onDocumentMouseClick(event) {
 
             // chain annotating mode
             if (globalState.annotatingChain) {
-                globalState.currentChain.push(globalState.selectedJoint.index);
+                globalState.currentChain.push([globalState.selectedJoint.index, globalState.selectedJoint]);
             }
 
         } else {
@@ -595,7 +596,35 @@ document.getElementById('annotatingChain').addEventListener("click", (e) => {
     e.preventDefault();
     globalState.annotatingChain = !globalState.annotatingChain;
     $('#annotatingChainMode').text(globalState.annotatingChain);
+    if (!globalState.annotatingChain) {
+        drawChains()
+    }
 });
+
+function drawChains() {
+    let chain;
+    let lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+    let points;
+    let lineGeometry;
+    let line;
+
+    while (globalState.renderedChains.length > 0) {
+        line = globalState.renderedChains.pop();
+        scene.remove(line);
+    }
+
+    for (chain of globalState.kinematicChains) {
+        points = chain.map((e) => {
+            // e[0] = index, e[1] = joint object
+            let pos = [e[1].position.x, e[1].position.y, e[1].position.z];
+            return new THREE.Vector3(...pos);
+        });
+        lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        line = new THREE.Line(lineGeometry, lineMaterial);
+        globalState.renderedChains.push(line);
+        scene.add(line)
+    }
+}
 
 document.getElementById('saveAnnotation').addEventListener("click", (e) => {
     e.preventDefault();
