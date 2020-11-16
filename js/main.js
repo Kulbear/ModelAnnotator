@@ -308,7 +308,7 @@ function fetchJointCandidates(modelId) {
 }
 
 // joint candidates fetching and rendering
-function saveJointCandidates() {
+function saveAnnotation() {
 
     const modelId = globalState.modelId;
     const data = {
@@ -336,18 +336,31 @@ function saveJointCandidates() {
     })
 }
 
-
+// for adding joint to the scene
 function createOneJoint(location) {
     const jointBall = new THREE.Mesh(
         new THREE.SphereGeometry(...globalState.jointSephereConfig),
         new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_JOINT })
     );
-    // TODO: load from local fsys
     jointBall.position.set(...location);
     jointBall.selected = false;
     jointBall.annotated = false;
     jointBall.typeAnnotation = null;
     jointBall.index = null;
+    return jointBall
+}
+
+// for loading from annotation
+function createOneJointFromAnnotation(location, typeAnnotation, index) {
+    const jointBall = new THREE.Mesh(
+        new THREE.SphereGeometry(...globalState.jointSephereConfig),
+        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_JOINT })
+    );
+    jointBall.position.set(...location);
+    jointBall.selected = false;
+    jointBall.annotated = true;
+    jointBall.typeAnnotation = typeAnnotation;
+    jointBall.index = index;
     return jointBall
 }
 
@@ -588,7 +601,7 @@ document.getElementById('loadModel').addEventListener("click", (e) => {
     loadAndRenderObject();
 });
 
-document.getElementById('loadJoints').addEventListener("click", (e) => {
+document.getElementById('loadAnnotation').addEventListener("click", (e) => {
     e.preventDefault();
     // TODO: ...
     console.log('Not implemented for now!');
@@ -624,7 +637,7 @@ function drawChains() {
 
 document.getElementById('saveAnnotation').addEventListener("click", (e) => {
     e.preventDefault();
-    saveJointCandidates();
+    saveAnnotation();
 });
 
 

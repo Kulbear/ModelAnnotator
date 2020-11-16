@@ -25,7 +25,7 @@
                     <ul>
                         <li>Click a part on the model and <b>press A</b> to add a joint.</li>
                         <li>Select (left-click) on a joint and <b>press D</b> to remove the joint.</li>
-                        <li>Under the chain annotation mode, <b>press C</b> to add a chain.</li>
+                        <li>Under the chain annotation mode, click joints one by one and <b>press C</b> to add a chain.</li>
                     </ul>
                     <h6>After loading the model successfully...</h6>
                     <ul>
@@ -62,7 +62,7 @@
                 </button>
                 <button id="modalTrigger" type="button" class="btn btn-success fill-hori" data-toggle="modal"
                         data-target="#helpModal">
-                    Help (Numpad Enter)
+                    Help (Press Enter)
                 </button>
             </div>
             <!-- Loading buttons -->
@@ -70,17 +70,20 @@
                 <br/>
                 <p>Model Type: <b id='modelType'></b></p>
                 <p>Annotating Chain? => <b id='annotatingChainMode'></b></p>
-                <form>
-                    <div class="form-group">
-                        <label for=modelIdInput>Model ID:</label>
-                        <input type="text" id="modelIdInput" class="fill-hori"/>
-                    </div>
-                    <button type="button" class="btn btn-info fill-hori" id="loadModel">Load Model</button>
-                    <button type="button" class="btn btn-info fill-hori" id="loadJoints">Load Joints</button>
-                    <button id="saveAnnotation" type="button" class="btn btn-info fill-hori">
-                        Save Annotation
-                    </button>
-                </form>
+                <div class="form-group">
+                    <label for=modelIdInput>Model ID:</label>
+                    <input type="text" id="modelIdInput" class="fill-hori"/>
+                </div>
+                <button type="button" class="btn btn-info fill-hori" id="loadModel">
+                    Load Model
+                </button>
+                <button type="button" class="btn btn-info fill-hori" id="loadAnnotation">
+                    Load Annotation
+                </button>
+                <button id="saveAnnotation" type="button" class="btn btn-info fill-hori">
+                    Save Annotation
+                </button>
+                
             </div>
             <!-- Joint property panel -->
             <div class="col-2 border">
