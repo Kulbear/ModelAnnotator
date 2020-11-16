@@ -76,6 +76,7 @@ function setToggleObjectsById(elementDOMId, objects) {
 
 // ===================================== Main Implementation ===================================== //
 
+// scene initialization
 function setupScene() {
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
@@ -167,7 +168,7 @@ let hiding;
     transformControl.addEventListener('dragging-changed', function (event) {
 
         controls.enabled = !event.value;
-
+        
     });
 
     scene.add(transformControl);
@@ -279,6 +280,7 @@ function render() {
     renderer.render(scene, camera);
     requestAnimationFrame(render);
     updateJointToForm(globalState.selectedJoint);
+    drawChains();
 }
 
 
@@ -446,7 +448,7 @@ function loadAndRenderObject() {
     wireframePivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
     // TODO: fetch automatically generated joints from server
     // fetch candidate joints from backend (only for PartNet data)
-    // if (isNumModelId) fetchJointCandidates(modelId);
+    if (isNumModelId) fetchJointCandidates(modelId);
     // return (modelId, isNumModelId) ????
 }
 
@@ -516,7 +518,7 @@ function onDocumentMouseClick(event) {
 
             // chain annotating mode
             if (globalState.annotatingChain) {
-                globalState.currentChain.push([globalState.selectedJoint.index, globalState.selectedJoint]);
+                globalState.currentChain.push([globalState.selectedJoint.index, globalState.selectedJoint.position]);
             }
 
         } else {
@@ -528,7 +530,7 @@ function onDocumentMouseClick(event) {
     }
 }
 
-document.addEventListener("keypress", function (event) {
+document.addEventListener('keypress', function (event) {
     // trigger help modal
     if (event.code === 'NumpadEnter') {
         $("#modalTrigger").click();
@@ -596,11 +598,9 @@ document.getElementById('annotatingChain').addEventListener("click", (e) => {
     e.preventDefault();
     globalState.annotatingChain = !globalState.annotatingChain;
     $('#annotatingChainMode').text(globalState.annotatingChain);
-    if (!globalState.annotatingChain) {
-        drawChains()
-    }
 });
 
+// draw skeleton chains
 function drawChains() {
     let chain;
     let lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
@@ -614,11 +614,7 @@ function drawChains() {
     }
 
     for (chain of globalState.kinematicChains) {
-        points = chain.map((e) => {
-            // e[0] = index, e[1] = joint object
-            let pos = [e[1].position.x, e[1].position.y, e[1].position.z];
-            return new THREE.Vector3(...pos);
-        });
+        points = chain.map((e) => e[1]);
         lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
         line = new THREE.Line(lineGeometry, lineMaterial);
         globalState.renderedChains.push(line);
