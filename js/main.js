@@ -286,6 +286,29 @@ function render() {
 
 // joint candidates fetching and rendering
 function fetchJointCandidates(modelId) {
+    fetch(`http://127.0.0.1:5000/api/v0.1/load_annotation/${modelId}`, {
+        method: 'get'
+    }).then(response => {
+        if (response.ok) {
+            response.json().then(json => {
+                if (json['with_annotation']) {
+                    let joints = json['joints'];
+                    let chains = json['chains'];
+                    for (let joint of joints) {
+                        let jointBall = createOneJointFromAnnotation(
+                            [joint.position[0] * 10, joint.position[1] * 10, joint.position[2] * 10],
+                            joint.category, joint.index);
+                        scene.add(jointBall);
+                        globalState.renderedJoints.push(jointBall);
+                    }
+
+                    setToggleObjectsById("toggleJoints", globalState.renderedJoints);
+                    globalState.kinematicChains = chains;
+                }
+            });
+        }
+    })
+
     fetch(`http://127.0.0.1:5000/api/v0.1/candidate_joints/${modelId}`, {
         method: 'get'
     }).then(response => {
@@ -461,7 +484,9 @@ function loadAndRenderObject() {
     wireframePivot.scale.set(transformationParams.scale, transformationParams.scale, transformationParams.scale);
     // TODO: fetch automatically generated joints from server
     // fetch candidate joints from backend (only for PartNet data)
-    if (isNumModelId) fetchJointCandidates(modelId);
+    if (isNumModelId) {
+        fetchJointCandidates(modelId);
+    }
     // return (modelId, isNumModelId) ????
 }
 

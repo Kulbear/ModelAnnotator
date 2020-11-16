@@ -41,12 +41,47 @@ def get_candidate_joints(model_id):
 @app.route('/api/v0.1/save_joints/<model_id>', methods=['POST'])
 def save_candidate_joints(model_id):
     data = request.data.decode('utf-8')
+    # TODO: change file path
     with open(f'../{model_id}.json', 'w') as f:
         data = json.loads(data)
         json.dump(data, f)
     return jsonify({
         'status': 200
     })
+
+
+@app.route('/api/v0.1/load_annotation/<model_id>', methods=['GET', 'POST'])
+def load_annotation_from_disk(model_id):
+    data = request.data.decode('utf-8')
+    try:
+        # TODO: change file path
+        with open(f'../{model_id}.json', 'r') as f:
+            data = f.read()
+            data = json.loads(data)
+
+        valid_joints = [item for item in data['joints'] if item['category'] != None and item['index'] != None]
+        valid_chains = []
+        for chain in data['chains']:
+            all_index = True
+            for item in chain:
+                if item[0] is None:
+                    all_index = False
+            if all_index:
+                valid_chains.append(chain)
+
+        processed_data = {
+            'with_annotation': True,
+            'modelId': data['modelId'],
+            'modelType': data['modelType'],
+            'joints': valid_joints,
+            'chains': valid_chains
+        }
+
+        return jsonify(processed_data)
+    except:
+        return jsonify({
+            'with_annotation': False
+        })
 
 
 if __name__ == '__main__':
