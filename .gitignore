@@ -1,5 +1,6 @@
 models/
 models_ply/
+PartNet_Processed/
 
 __pycache__/
 
@@ -9,3 +10,4 @@ __pycache__/
 *.ipynb
 
 .idea
+

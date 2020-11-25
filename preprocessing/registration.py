@@ -19,7 +19,9 @@ def icp_call(filename_source, filename_sample, save_name):
             mesh_p.export(save_name + ".obj")
 
 
-def icp_adjust(filename_source, filename_sample, save_name, rotate=90):
+def icp_adjust(filename_source, filename_sample, save_name, rotate=90, tried=0):
+    if tried > 3:
+        return
     # load source
     vertices, faces_fix = load_obj(filename_source)
     # rotate and rescale
@@ -47,7 +49,7 @@ def icp_adjust(filename_source, filename_sample, save_name, rotate=90):
 
     # use different rotation
     if dis_error > 0.001:
-        icp_adjust(filename_source, filename_sample, save_name, rotate=0)
+        icp_adjust(filename_source, filename_sample, save_name, rotate=0, tried=tried + 1)
     else:
         # # # transform the source pcd to current
         result_verts = tf_param.transform(vertices)
@@ -61,10 +63,18 @@ if __name__ == '__main__':
 
     import os
 
-    models = os.listdir("./models/")
+    models = os.listdir("./PartNet_Processed/Chair")
     for pure_name in models:
         print('Working on', pure_name)
-        filename_source = f"./models/{pure_name}//objs//source.obj"
-        filename_sample = f"./models/{pure_name}/point_sample/ply-10000.ply"
+        filename_source = f"././PartNet_Processed/Chair/{pure_name}//objs//sn_raw.obj"
+        filename_sample = f"././PartNet_Processed/Chair/{pure_name}/point_sample/ply-10000.ply"
+        try:
+            if os.path.exists("././PartNet_Processed/Chair/{pure_name}//objs//source.obj"):
+                print('Skipped', pure_name)
+                continue
+            icp_adjust(filename_source, filename_sample, save_name=f"././PartNet_Processed/Chair/{pure_name}//objs//source")
+        except:
+            print('Failed!')
 
-        icp_adjust(filename_source, filename_sample, save_name=pure_name)
+
+# MeshViewer_bin.exe "C:\Users\Darker White\Documents\GitHub\ModelAnnotator\models\172\objs\source.obj" 0.0056 0.08 5 1 8
