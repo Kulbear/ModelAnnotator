@@ -158,7 +158,7 @@ scene.add(cursor);
 
 // transform/drag control for joints
 const transformControl = new TransformControls(camera, renderer.domElement);
-const dragControls = new DragControls(globalState.renderedJoints, camera, renderer.domElement);
+let dragControls = new DragControls(globalState.renderedJoints, camera, renderer.domElement);
 dragControls.enabled = false;
 
 let hiding;
@@ -303,7 +303,19 @@ function fetchJointCandidates(modelId) {
                     }
 
                     setToggleObjectsById("toggleJoints", globalState.renderedJoints);
-                    globalState.kinematicChains = chains;
+                    // TODO: make chains to be Vector3s
+                    let tempChains = chains.map((item) => {
+                        item.map((e) => {
+                            let coord = e[1];
+                            console.log(coord);
+                            let vec = new THREE.Vector3(coord.x , coord.y, coord.z);
+                            e[1] = vec;
+                            return e;
+                        })
+                        return item;
+                    });
+                    console.log(tempChains);
+                    globalState.kinematicChains = tempChains;
                 }
             });
         }
@@ -375,12 +387,7 @@ function createOneJoint(location) {
 
 // for loading from annotation
 function createOneJointFromAnnotation(location, typeAnnotation, index) {
-    const jointBall = new THREE.Mesh(
-        new THREE.SphereGeometry(...globalState.jointSephereConfig),
-        new THREE.MeshPhongMaterial({ color: COLOR.UNSELECTED_JOINT })
-    );
-    jointBall.position.set(...location);
-    jointBall.selected = false;
+    const jointBall = createOneJoint(location)
     jointBall.annotated = true;
     jointBall.typeAnnotation = typeAnnotation;
     jointBall.index = index;
