@@ -283,6 +283,22 @@ function render() {
     drawChains();
 }
 
+function findClosestJoint(vector) {
+    let cJoint;
+    let cDis = 99999999;
+    if (globalState.renderedJoints.length > 0) {
+        cJoint = globalState.renderedJoints[0];
+        for (let joint of globalState.renderedJoints) {
+            let dis = vector.distanceToSquared(joint.position);
+            if (dis < cDis) {
+                cJoint = joint;
+                cDis = dis;
+            }
+        }
+    }
+    return cJoint;
+}
+
 
 // joint candidates fetching and rendering
 function fetchJointCandidates(modelId) {
@@ -303,13 +319,12 @@ function fetchJointCandidates(modelId) {
                     }
 
                     setToggleObjectsById("toggleJoints", globalState.renderedJoints);
-                    // TODO: make chains to be Vector3s
                     let tempChains = chains.map((item) => {
                         item.map((e) => {
                             let coord = e[1];
-                            console.log(coord);
+                            // Match the vector3 with the closest joint
                             let vec = new THREE.Vector3(coord.x , coord.y, coord.z);
-                            e[1] = vec;
+                            e[1] = findClosestJoint(vec).position;
                             return e;
                         })
                         return item;
